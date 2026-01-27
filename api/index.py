@@ -1,10 +1,16 @@
 from flask import Flask, render_template, request, jsonify
+import sys
+import os
+
+# Add parent directory to path so we can import our modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from checkers import CheckersBoard
 from cpu import CPUPlayer
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
-# Game state storage
+# Game state storage (in-memory, resets on cold start)
 games = {}
 
 def get_game(session_id='default'):
@@ -116,5 +122,6 @@ def start_game():
 
     return jsonify({'success': True, 'mode': game_state['mode']})
 
+# For local development
 if __name__ == '__main__':
     app.run(debug=True)

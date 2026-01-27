@@ -3,106 +3,168 @@
 <head>
     <title>Checkers Game</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #464645; /* Dark gray background */
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
             color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .game-container {
             display: flex;
-            flex-direction: row;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            gap: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 520px;
         }
         .board {
             display: grid;
-            grid-template-columns: repeat(8, 60px); /* Increased cell size */
-            grid-template-rows: repeat(8, 60px); /* Increased cell size */
-            margin-right: 20px; /* Space between board and button */
-            border: 20px solid #3a2929; /* Frame for the board */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 15px solid #3a2929;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
         }
         .cell {
-            width: 60px; /* Increased cell size */
-            height: 60px; /* Increased cell size */
+            width: 60px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #444; /* Darker border for cells */
+            position: relative;
         }
-        .white { background-color: #d8d7d7; } /* Lighter color for contrast */
-        .black { background-color: #6e4343; } /* Black cells */
+        .white { background-color: #d8d7d7; }
+        .black { background-color: #6e4343; }
         .piece {
-            width: 50px; /* Slightly smaller than the cell for spacing */
-            height: 50px; /* Slightly smaller than the cell for spacing */
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             cursor: pointer;
-            position: relative; /* Needed for the box-shadow to work properly */
-            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333; /* Double border effect */
+            position: relative;
+            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333, 0 3px 8px rgba(0,0,0,0.4);
+            transition: transform 0.1s ease;
         }
-        .R, .RQ { background-color: rgb(183, 48, 48); }
-        .B, .BQ { background-color: rgb(39, 38, 38); }
-        .queen:after {
-            content: '♛';
+        .piece:hover {
+            transform: scale(1.05);
+        }
+        .R, .RQ { background: linear-gradient(145deg, rgb(200, 60, 60), rgb(160, 35, 35)); }
+        .B, .BQ { background: linear-gradient(145deg, rgb(60, 58, 58), rgb(25, 24, 24)); }
+        .queen::after {
+            content: '\u265B';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
+            font-size: 26px;
             color: gold;
-        }
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-        }
-        .reset-button, .mode-button {
-            padding: 10px 20px;
-            background-color: #2f2d2d;
-            color: rgb(196, 190, 190);
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            min-width: 140px;
-        }
-        .reset-button:hover, .mode-button:hover {
-            background-color: #555;
-        }
-        .mode-button.active {
-            background-color: #6e4343;
-            color: white;
-        }
-        .turn-indicator {
-            padding: 10px 20px;
-            background-color: #2f2d2d;
-            border-radius: 5px;
-            font-weight: bold;
-            min-width: 140px;
-            text-align: center;
-        }
-        .turn-indicator.red-turn {
-            border: 2px solid rgb(183, 48, 48);
-        }
-        .turn-indicator.black-turn {
-            border: 2px solid rgb(39, 38, 38);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
         .piece.selected {
-            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333, 0 0 15px 5px rgba(255, 255, 0, 0.7);
+            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333, 0 0 20px 8px rgba(255, 215, 0, 0.7);
+            transform: scale(1.08);
         }
         .piece.animating {
             transition: transform 0.4s ease-in-out;
             z-index: 100;
+            pointer-events: none;
         }
-    </style>    
-    <script src="/static/js/script.js"></script>
+        .turn-indicator {
+            padding: 12px 24px;
+            background-color: #2f2d2d;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            min-width: 140px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .turn-indicator.red-turn {
+            border: 3px solid rgb(183, 48, 48);
+            box-shadow: 0 0 15px rgba(183, 48, 48, 0.3);
+        }
+        .turn-indicator.black-turn {
+            border: 3px solid rgb(80, 80, 80);
+            box-shadow: 0 0 15px rgba(80, 80, 80, 0.3);
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 24px;
+            background-color: #2f2d2d;
+            color: rgb(196, 190, 190);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .btn:hover {
+            background-color: #444;
+            transform: translateY(-2px);
+        }
+        .mode-badge {
+            padding: 8px 16px;
+            background-color: #3a2929;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        .game-over-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .game-over-modal {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            padding: 40px 60px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .game-over-modal h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .game-over-modal p {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        .game-over-modal .btn {
+            margin: 0 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
+        <div class="header">
+            <div id="turn-indicator" class="turn-indicator red-turn">Red's Turn</div>
+            <div id="mode-badge" class="mode-badge">vs Computer</div>
+        </div>
+
         <div id="board" class="board">
             {% for row in range(8) %}
                 {% for col in range(8) %}
@@ -114,12 +176,254 @@
                 {% endfor %}
             {% endfor %}
         </div>
+
         <div class="controls">
-            <div id="turn-indicator" class="turn-indicator red-turn">Red's Turn</div>
-            <button id="mode-ai" class="mode-button active" onclick="setMode('ai')">vs Computer</button>
-            <button id="mode-human" class="mode-button" onclick="setMode('human')">vs Human</button>
-            <button onclick="resetGame()" class="reset-button">Reset Game</button>
+            <button class="btn" onclick="goHome()">Home</button>
+            <button class="btn" onclick="resetGame()">New Game</button>
         </div>
     </div>
+
+    <div id="game-over-overlay" class="game-over-overlay">
+        <div class="game-over-modal">
+            <h2 id="winner-text">Game Over!</h2>
+            <p id="winner-subtitle">Well played!</p>
+            <button class="btn" onclick="goHome()">Home</button>
+            <button class="btn" onclick="playAgain()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let selectedPiece = null;
+            let currentPlayer = 'R';
+            let gameMode = localStorage.getItem('gameMode') || 'ai';
+            let isAnimating = false;
+            let gameOver = false;
+
+            // Update mode badge
+            document.getElementById('mode-badge').textContent = gameMode === 'ai' ? 'vs Computer' : 'vs Human';
+
+            document.getElementById("board").addEventListener("click", function(event) {
+                if (isAnimating || gameOver) return;
+                if (gameMode === 'ai' && currentPlayer !== 'R') return;
+
+                let clickedElement = event.target;
+
+                if (clickedElement.classList.contains("piece") &&
+                    (clickedElement.classList.contains(currentPlayer) ||
+                     clickedElement.classList.contains(currentPlayer + 'Q'))) {
+
+                    if (selectedPiece) {
+                        selectedPiece.classList.remove('selected');
+                    }
+                    selectedPiece = clickedElement;
+                    selectedPiece.classList.add('selected');
+
+                } else if (selectedPiece && clickedElement.classList.contains("cell")) {
+                    let startX = parseInt(selectedPiece.parentElement.dataset.x, 10);
+                    let startY = parseInt(selectedPiece.parentElement.dataset.y, 10);
+                    let endX = parseInt(clickedElement.dataset.x, 10);
+                    let endY = parseInt(clickedElement.dataset.y, 10);
+
+                    fetch('/move', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ start: [startX, startY], end: [endX, endY] }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.valid) {
+                            if (selectedPiece) {
+                                selectedPiece.classList.remove('selected');
+                            }
+                            selectedPiece = null;
+
+                            if (data.cpu_moves && data.cpu_moves.length > 0) {
+                                updateBoardBeforeCpu(data.board, data.cpu_moves);
+                                animateCpuMoves(data.cpu_moves, data.board, () => {
+                                    currentPlayer = data.current_player;
+                                    updateTurnIndicator();
+                                    if (data.game_over) {
+                                        showGameOver(data.winner);
+                                    }
+                                });
+                            } else {
+                                updateBoard(data.board);
+                                currentPlayer = data.current_player;
+                                updateTurnIndicator();
+                                if (data.game_over) {
+                                    showGameOver(data.winner);
+                                }
+                            }
+                        } else if (data.mandatory_capture) {
+                            showMessage("Capture available! You must take it.");
+                        }
+                    });
+                }
+            });
+
+            function updateBoardBeforeCpu(finalBoard, cpuMoves) {
+                let boardCopy = JSON.parse(JSON.stringify(finalBoard));
+                let piecePositions = [];
+
+                for (let i = cpuMoves.length - 1; i >= 0; i--) {
+                    let move = cpuMoves[i];
+                    if (i === cpuMoves.length - 1) {
+                        piecePositions.unshift({ move: move, piece: boardCopy[move.end[0]][move.end[1]] });
+                        boardCopy[move.end[0]][move.end[1]] = ' ';
+                    } else {
+                        piecePositions.unshift({ move: move, piece: piecePositions[0].piece });
+                    }
+                }
+
+                if (cpuMoves.length > 0) {
+                    boardCopy[cpuMoves[0].start[0]][cpuMoves[0].start[1]] = piecePositions[0].piece;
+                }
+
+                updateBoard(boardCopy);
+            }
+
+            function animateCpuMoves(moves, finalBoard, callback) {
+                if (moves.length === 0) {
+                    callback();
+                    return;
+                }
+
+                isAnimating = true;
+                let moveIndex = 0;
+
+                function animateNext() {
+                    if (moveIndex >= moves.length) {
+                        isAnimating = false;
+                        updateBoard(finalBoard);
+                        callback();
+                        return;
+                    }
+
+                    let move = moves[moveIndex];
+                    let startCell = document.querySelector('.cell[data-x="' + move.start[0] + '"][data-y="' + move.start[1] + '"]');
+                    let endCell = document.querySelector('.cell[data-x="' + move.end[0] + '"][data-y="' + move.end[1] + '"]');
+                    let piece = startCell ? startCell.querySelector('.piece') : null;
+
+                    if (!piece) {
+                        moveIndex++;
+                        animateNext();
+                        return;
+                    }
+
+                    let startRect = startCell.getBoundingClientRect();
+                    let endRect = endCell.getBoundingClientRect();
+                    let deltaX = endRect.left - startRect.left;
+                    let deltaY = endRect.top - startRect.top;
+
+                    piece.classList.add('animating');
+                    piece.style.transform = 'translate(' + deltaX + 'px, ' + deltaY + 'px)';
+
+                    setTimeout(() => {
+                        piece.classList.remove('animating');
+                        piece.style.transform = '';
+
+                        startCell.innerHTML = '';
+
+                        if (moveIndex === moves.length - 1) {
+                            let finalPiece = finalBoard[move.end[0]][move.end[1]];
+                            let className = 'piece ' + finalPiece;
+                            if (finalPiece.includes('Q')) className += ' queen';
+                            endCell.innerHTML = '<div class="' + className + '"></div>';
+                        } else {
+                            let classes = piece.className.replace('animating', '').trim();
+                            endCell.innerHTML = '<div class="' + classes + '"></div>';
+                        }
+
+                        if (Math.abs(move.start[0] - move.end[0]) === 2) {
+                            let midRow = Math.floor((move.start[0] + move.end[0]) / 2);
+                            let midCol = Math.floor((move.start[1] + move.end[1]) / 2);
+                            let midCell = document.querySelector('.cell[data-x="' + midRow + '"][data-y="' + midCol + '"]');
+                            if (midCell) midCell.innerHTML = '';
+                        }
+
+                        moveIndex++;
+                        setTimeout(animateNext, 150);
+                    }, 400);
+                }
+
+                setTimeout(animateNext, 300);
+            }
+
+            function updateBoard(newBoard) {
+                let cells = document.querySelectorAll('.cell');
+                cells.forEach((cell, index) => {
+                    let row = Math.floor(index / 8);
+                    let col = index % 8;
+                    let pieceType = newBoard[row][col];
+
+                    if (pieceType === ' ') {
+                        cell.innerHTML = '';
+                    } else {
+                        let className = 'piece ' + pieceType;
+                        if (pieceType.includes('Q')) className += ' queen';
+                        cell.innerHTML = '<div class="' + className + '"></div>';
+                    }
+                });
+            }
+
+            function updateTurnIndicator() {
+                let indicator = document.getElementById('turn-indicator');
+                if (currentPlayer === 'R') {
+                    indicator.textContent = "Red's Turn";
+                    indicator.className = 'turn-indicator red-turn';
+                } else {
+                    indicator.textContent = "Black's Turn";
+                    indicator.className = 'turn-indicator black-turn';
+                }
+            }
+
+            function showGameOver(winner) {
+                gameOver = true;
+                let overlay = document.getElementById('game-over-overlay');
+                let winnerText = document.getElementById('winner-text');
+                let subtitle = document.getElementById('winner-subtitle');
+
+                if (winner === 'R') {
+                    winnerText.textContent = 'Red Wins!';
+                    winnerText.style.color = 'rgb(183, 48, 48)';
+                } else {
+                    winnerText.textContent = 'Black Wins!';
+                    winnerText.style.color = '#888';
+                }
+
+                if (gameMode === 'ai') {
+                    subtitle.textContent = winner === 'R' ? 'You beat the computer!' : 'The computer wins!';
+                } else {
+                    subtitle.textContent = 'Great game!';
+                }
+
+                overlay.style.display = 'flex';
+            }
+
+            function showMessage(msg) {
+                // Simple alert for now
+                alert(msg);
+            }
+
+            window.goHome = function() {
+                window.location.href = '/';
+            };
+
+            window.resetGame = function() {
+                fetch('/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: gameMode }),
+                }).then(() => {
+                    window.location.reload();
+                });
+            };
+
+            window.playAgain = function() {
+                resetGame();
+            };
+        });
+    </script>
 </body>
 </html>
