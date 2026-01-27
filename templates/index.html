@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Liviu's Checkers</title>
-    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-    <link rel="apple-touch-icon" href="/static/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.svg') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -379,11 +379,11 @@
     </a>
 
     <!-- Audio elements (preloaded) -->
-    <audio id="sound-grab" preload="auto" src="/static/sfx/grab.wav"></audio>
-    <audio id="sound-drop" preload="auto" src="/static/sfx/drop.wav"></audio>
-    <audio id="sound-won" preload="auto" src="/static/sfx/won.wav"></audio>
-    <audio id="sound-lost" preload="auto" src="/static/sfx/lost.wav"></audio>
-    <audio id="sound-warning" preload="auto" src="/static/sfx/warning.wav"></audio>
+    <audio id="sound-grab" preload="auto" src="{{ url_for('static', filename='sfx/grab.wav') }}"></audio>
+    <audio id="sound-drop" preload="auto" src="{{ url_for('static', filename='sfx/drop.wav') }}"></audio>
+    <audio id="sound-won" preload="auto" src="{{ url_for('static', filename='sfx/won.wav') }}"></audio>
+    <audio id="sound-lost" preload="auto" src="{{ url_for('static', filename='sfx/lost.wav') }}"></audio>
+    <audio id="sound-warning" preload="auto" src="{{ url_for('static', filename='sfx/warning.wav') }}"></audio>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
