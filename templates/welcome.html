@@ -1,217 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Checkers Game</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Checkers Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Signature Animation */
+        .signature-path {
+            stroke-dasharray: 2000;
+            stroke-dashoffset: 2000;
+            animation: draw 3s ease-out forwards;
         }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
         }
-        .welcome-container {
-            text-align: center;
-            padding: 40px;
-            max-width: 600px;
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
         }
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
-        .queen-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 40px auto;
-            background: linear-gradient(145deg, rgb(200, 60, 60), rgb(140, 30, 30));
+        .boot-screen {
+            animation: fadeOut 0.5s ease-out 3.5s forwards;
+        }
+        .main-content {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 3.5s forwards;
+        }
+        /* Board preview */
+        .board-preview {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 1px;
+        }
+        .preview-cell {
+            aspect-ratio: 1;
+        }
+        .preview-piece {
+            width: 70%;
+            height: 70%;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow:
-                0 0 0 6px rgb(203, 186, 151),
-                0 0 0 12px #333,
-                0 15px 40px rgba(0, 0, 0, 0.5);
-            position: relative;
+            margin: 15%;
         }
-        .queen-icon::after {
-            content: '\u265B';
-            font-size: 60px;
-            color: gold;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        /* Crown SVG for queens */
+        .crown-icon {
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
         }
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-            margin-bottom: 50px;
-        }
-        .menu-button {
-            padding: 18px 50px;
-            font-size: 1.3rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 280px;
-            font-weight: 600;
-        }
-        .btn-cpu {
-            background: linear-gradient(135deg, rgb(183, 48, 48) 0%, rgb(140, 30, 30) 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(183, 48, 48, 0.4);
-        }
-        .btn-cpu:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(183, 48, 48, 0.6);
-        }
-        .btn-human {
-            background: linear-gradient(135deg, #4a4a4a 0%, #333 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        .btn-human:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-        }
-        .about-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 25px;
-            text-align: left;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .about-section h3 {
-            font-size: 1.1rem;
-            margin-bottom: 12px;
-            color: #ccc;
-        }
-        .about-section p {
-            font-size: 0.95rem;
-            color: #999;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        .about-links {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .about-links a {
-            color: rgb(183, 100, 100);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.3s;
-        }
-        .about-links a:hover {
-            color: rgb(220, 120, 120);
-        }
-        .signature-watermark {
+        /* Watermark */
+        .watermark {
             position: fixed;
-            bottom: 15px;
-            right: 15px;
-            opacity: 0.4;
-            pointer-events: none;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.5;
+            z-index: 50;
         }
-        .signature-watermark svg {
+        .watermark svg {
             width: 120px;
             height: auto;
         }
-
-        /* Mobile Responsive */
         @media (max-width: 480px) {
-            .welcome-container {
-                padding: 20px 15px;
-            }
-            h1 {
-                font-size: 2.5rem;
-                margin-bottom: 20px;
-            }
-            .queen-icon {
-                width: 90px;
-                height: 90px;
-                margin-bottom: 30px;
-            }
-            .queen-icon::after {
-                font-size: 45px;
-            }
-            .menu {
-                margin-bottom: 30px;
-            }
-            .menu-button {
-                padding: 15px 30px;
-                font-size: 1.1rem;
-                min-width: 240px;
-                width: 100%;
-            }
-            .about-section {
-                padding: 18px;
-            }
-            .about-section h3 {
-                font-size: 1rem;
-            }
-            .about-section p {
-                font-size: 0.85rem;
-            }
-            .about-links {
-                gap: 15px;
-            }
-            .about-links a {
-                font-size: 0.85rem;
-            }
-            .signature-watermark svg {
+            .watermark svg {
                 width: 80px;
+            }
+            .watermark {
+                bottom: 10px;
+                right: 10px;
             }
         }
     </style>
 </head>
-<body>
-    <div class="welcome-container">
-        <h1>Checkers</h1>
+<body class="min-h-screen bg-gradient-to-br from-zinc-800 via-zinc-900 to-black text-white font-sans">
 
-        <div class="queen-icon"></div>
+    <!-- Boot Screen with Signature Animation -->
+    <div id="boot-screen" class="boot-screen fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center">
+        <svg viewBox="200 80 520 120" xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4/5 max-w-xl">
+            <path class="signature-path"
+                  d="M220.228 124.394C216.295 136.784 197.467 151.923 213.286 164.067C233.494 179.581 311.081 114.354 287.264 97.9612C267.04 84.0407 230.956 101.639 227.963 116.478M275.112 144.263C303.698 122.796 289.382 147.552 285.867 155.813C283.982 160.244 311.078 154.469 314.689 153.41M314.689 153.41C359.924 140.146 311.373 127.238 314.689 153.41ZM314.689 153.41C316.788 169.975 356.198 147.569 361.872 143.865M361.872 143.865C379.996 132.033 396.654 110.1 396.142 93.0151C395.587 74.4442 371.8 126.504 361.872 143.865ZM361.872 143.865C358.713 149.388 356.853 155.059 354.151 160.646C353.56 161.868 357.043 156.178 366.562 150.218C393.466 133.372 380.946 180.567 408.42 157.542M408.42 157.542C422.113 146.068 406.519 142.186 408.42 157.542ZM408.42 157.542C409.261 164.335 419.291 164.376 427.904 164.518C446.758 164.829 436.156 128.918 413.569 144.253M443.616 141.885C461.237 189.037 461.247 141.561 494.921 144.092M530.069 142.59C492.635 142.764 525.754 153.079 519.876 160.419C508.831 167.863 482.829 171.175 468.519 176M567.777 142.645C548.176 142.644 535.687 158.692 551.095 168.622C563.172 176.406 592.423 158.35 598.782 153.314M598.782 153.314C612.006 142.84 620.551 100.564 615.577 113.834C610.591 127.137 604.922 140.225 598.782 153.314ZM598.782 153.314C586.286 179.948 593.453 164.248 617.545 156.091C635.029 150.172 619.238 171.51 629.98 172.179C645.463 173.144 652.018 163.388 658.901 155.799M660.543 135.24C663.427 135.24 666.987 132.79 669 131.565"
+                  stroke="white"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  fill="none"/>
+        </svg>
+    </div>
 
-        <div class="menu">
-            <button class="menu-button btn-cpu" onclick="startGame('ai')">
-                Play vs Computer
-            </button>
-            <button class="menu-button btn-human" onclick="startGame('human')">
-                Play vs Human
-            </button>
-        </div>
+    <!-- Main Content -->
+    <div class="main-content min-h-screen flex items-center justify-center p-4 sm:p-8">
+        <div class="max-w-lg w-full space-y-8">
 
-        <div class="about-section">
-            <h3>About This Project</h3>
-            <p>
-                A checkers game featuring an AI opponent powered by the minimax algorithm with alpha-beta pruning.
-                Built from scratch for the <strong>Problem Solving with AI</strong> class at <strong>Minerva University</strong>.
-            </p>
-            <p>
-                Unlike existing online implementations that many use, this project was developed entirely from the ground up
-                to ensure technically correct game logic and AI behavior.
-            </p>
-            <p style="margin-bottom: 0; color: #bbb;">
-                Created by <strong>Liviu Orehovschi</strong>
-            </p>
-            <div class="about-links">
-                <a href="https://orehovschi.com" target="_blank">orehovschi.com</a>
-                <a href="https://linkedin.com/in/liviuorehovschi" target="_blank">LinkedIn</a>
-                <a href="https://github.com/liviuorehovschi" target="_blank">GitHub</a>
+            <!-- Title -->
+            <h1 class="text-4xl sm:text-5xl font-bold text-center tracking-tight">
+                Checkers
+            </h1>
+
+            <!-- Board Preview -->
+            <div class="board-preview w-48 h-48 sm:w-56 sm:h-56 mx-auto rounded-lg overflow-hidden shadow-2xl border-4 border-amber-900/80">
+                <script>
+                    for (let row = 0; row < 8; row++) {
+                        for (let col = 0; col < 8; col++) {
+                            const isBlack = (row + col) % 2 === 1;
+                            const bgClass = isBlack ? 'bg-amber-900/90' : 'bg-stone-200';
+                            let piece = '';
+                            if (isBlack) {
+                                if (row < 3) {
+                                    piece = '<div class="preview-piece bg-gradient-to-br from-zinc-600 to-zinc-800 shadow-lg border-2 border-zinc-500"></div>';
+                                } else if (row > 4) {
+                                    piece = '<div class="preview-piece bg-gradient-to-br from-red-500 to-red-700 shadow-lg border-2 border-red-400"></div>';
+                                }
+                            }
+                            document.write('<div class="preview-cell ' + bgClass + '">' + piece + '</div>');
+                        }
+                    }
+                </script>
+            </div>
+
+            <!-- Game Mode Buttons -->
+            <div class="space-y-4">
+                <button onclick="startGame('ai')"
+                        class="w-full py-4 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold text-lg rounded-xl shadow-lg shadow-red-900/50 transform hover:scale-[1.02] transition-all duration-200">
+                    Play vs Computer
+                </button>
+                <button onclick="startGame('human')"
+                        class="w-full py-4 px-6 bg-gradient-to-r from-zinc-600 to-zinc-700 hover:from-zinc-500 hover:to-zinc-600 text-white font-semibold text-lg rounded-xl shadow-lg shadow-black/50 transform hover:scale-[1.02] transition-all duration-200">
+                    Play vs Human
+                </button>
+            </div>
+
+            <!-- About Section -->
+            <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 space-y-4">
+                <h3 class="text-lg font-semibold text-zinc-300">About This Project</h3>
+
+                <div class="space-y-3 text-sm text-zinc-400 leading-relaxed">
+                    <p>
+                        A fully functional checkers game featuring an <span class="text-zinc-200">AI opponent powered by the minimax algorithm with alpha-beta pruning</span> for optimal decision-making.
+                    </p>
+                    <p>
+                        Built entirely from scratch for the <span class="text-zinc-200">Problem Solving with AI</span> class at <span class="text-zinc-200">Minerva University</span>.
+                    </p>
+                    <p>
+                        Unlike existing online implementations that many classmates relied on, this project was developed from the ground up to ensure <span class="text-zinc-200">technically correct game logic, proper rule enforcement</span> (including mandatory captures and king promotion), and <span class="text-zinc-200">accurate AI behavior</span>.
+                    </p>
+                    <p>
+                        The game supports both <span class="text-zinc-200">Player vs AI</span> and <span class="text-zinc-200">Player vs Player</span> modes, with smooth animations and a responsive design that works on desktop and mobile.
+                    </p>
+                </div>
+
+                <div class="pt-3 border-t border-white/10">
+                    <p class="text-zinc-300 font-medium mb-2">Created by Liviu Orehovschi</p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="https://orehovschi.com" target="_blank" class="text-red-400 hover:text-red-300 transition-colors text-sm">orehovschi.com</a>
+                        <a href="https://linkedin.com/in/liviuorehovschi" target="_blank" class="text-red-400 hover:text-red-300 transition-colors text-sm">LinkedIn</a>
+                        <a href="https://github.com/liviuorehovschi" target="_blank" class="text-red-400 hover:text-red-300 transition-colors text-sm">GitHub</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="signature-watermark">
+    <!-- Watermark -->
+    <div class="watermark">
         <svg viewBox="200 80 520 120" xmlns="http://www.w3.org/2000/svg" fill="none">
             <path d="M220.228 124.394C216.295 136.784 197.467 151.923 213.286 164.067C233.494 179.581 311.081 114.354 287.264 97.9612C267.04 84.0407 230.956 101.639 227.963 116.478M275.112 144.263C303.698 122.796 289.382 147.552 285.867 155.813C283.982 160.244 311.078 154.469 314.689 153.41M314.689 153.41C359.924 140.146 311.373 127.238 314.689 153.41ZM314.689 153.41C316.788 169.975 356.198 147.569 361.872 143.865M361.872 143.865C379.996 132.033 396.654 110.1 396.142 93.0151C395.587 74.4442 371.8 126.504 361.872 143.865ZM361.872 143.865C358.713 149.388 356.853 155.059 354.151 160.646C353.56 161.868 357.043 156.178 366.562 150.218C393.466 133.372 380.946 180.567 408.42 157.542M408.42 157.542C422.113 146.068 406.519 142.186 408.42 157.542ZM408.42 157.542C409.261 164.335 419.291 164.376 427.904 164.518C446.758 164.829 436.156 128.918 413.569 144.253M443.616 141.885C461.237 189.037 461.247 141.561 494.921 144.092M530.069 142.59C492.635 142.764 525.754 153.079 519.876 160.419C508.831 167.863 482.829 171.175 468.519 176M567.777 142.645C548.176 142.644 535.687 158.692 551.095 168.622C563.172 176.406 592.423 158.35 598.782 153.314M598.782 153.314C612.006 142.84 620.551 100.564 615.577 113.834C610.591 127.137 604.922 140.225 598.782 153.314ZM598.782 153.314C586.286 179.948 593.453 164.248 617.545 156.091C635.029 150.172 619.238 171.51 629.98 172.179C645.463 173.144 652.018 163.388 658.901 155.799M660.543 135.24C663.427 135.24 666.987 132.79 669 131.565"
                   stroke="white"
@@ -225,23 +174,24 @@
         function startGame(mode) {
             fetch('/start', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mode: mode }),
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    localStorage.setItem('gameMode', mode);
-                    window.location.href = '/game';
-                }
+                localStorage.setItem('gameMode', mode);
+                window.location.href = '/game';
             })
-            .catch(error => {
+            .catch(() => {
                 localStorage.setItem('gameMode', mode);
                 window.location.href = '/game';
             });
         }
+
+        // Remove boot screen after animation
+        setTimeout(() => {
+            document.getElementById('boot-screen').style.display = 'none';
+        }, 4000);
     </script>
 </body>
 </html>

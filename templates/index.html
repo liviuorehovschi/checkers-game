@@ -1,366 +1,199 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Checkers Game</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Checkers Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --cell-size: 60px;
         }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 520px;
+        @media (max-width: 520px) {
+            :root {
+                --cell-size: calc((100vw - 50px) / 8);
+            }
         }
         .board {
             display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-template-rows: repeat(8, 60px);
-            border: 15px solid #3a2929;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            border-radius: 4px;
+            grid-template-columns: repeat(8, var(--cell-size));
+            grid-template-rows: repeat(8, var(--cell-size));
         }
         .cell {
-            width: 60px;
-            height: 60px;
+            width: var(--cell-size);
+            height: var(--cell-size);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
         }
-        .white { background-color: #d8d7d7; }
-        .black { background-color: #6e4343; }
-        .cell.drag-over {
-            background-color: rgba(255, 215, 0, 0.3) !important;
-        }
         .piece {
-            width: 46px;
-            height: 46px;
+            width: calc(var(--cell-size) - 14px);
+            height: calc(var(--cell-size) - 14px);
             border-radius: 50%;
             cursor: grab;
-            position: relative;
-            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333, 0 3px 8px rgba(0,0,0,0.4);
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             user-select: none;
             -webkit-user-drag: none;
+            transition: box-shadow 0.15s ease;
         }
-        .piece:hover {
-            transform: scale(1.05);
+        .piece:active { cursor: grabbing; }
+        .piece.R, .piece.RQ {
+            background: linear-gradient(145deg, #dc2626, #991b1b);
+            box-shadow: 0 0 0 3px #d4a574, 0 0 0 6px #333, 0 4px 8px rgba(0,0,0,0.4);
         }
-        .piece.dragging {
-            opacity: 0.5;
-            cursor: grabbing;
-        }
-        .R, .RQ { background: linear-gradient(145deg, rgb(200, 60, 60), rgb(160, 35, 35)); }
-        .B, .BQ { background: linear-gradient(145deg, rgb(60, 58, 58), rgb(25, 24, 24)); }
-        .queen::after {
-            content: '\u265B';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 26px;
-            color: gold;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            pointer-events: none;
+        .piece.B, .piece.BQ {
+            background: linear-gradient(145deg, #3f3f46, #18181b);
+            box-shadow: 0 0 0 3px #d4a574, 0 0 0 6px #333, 0 4px 8px rgba(0,0,0,0.4);
         }
         .piece.selected {
-            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333, 0 0 20px 8px rgba(255, 215, 0, 0.7);
+            box-shadow: 0 0 0 3px #d4a574, 0 0 0 6px #333, 0 0 20px 8px rgba(250, 204, 21, 0.7);
             transform: scale(1.08);
+        }
+        .piece.dragging {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .crown-svg {
+            width: 55%;
+            height: 55%;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+        }
+        .drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            width: calc(var(--cell-size) - 10px);
+            height: calc(var(--cell-size) - 10px);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drag-ghost.R, .drag-ghost.RQ {
+            background: linear-gradient(145deg, #dc2626, #991b1b);
+            box-shadow: 0 0 0 3px #d4a574, 0 0 0 6px #333, 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .drag-ghost.B, .drag-ghost.BQ {
+            background: linear-gradient(145deg, #3f3f46, #18181b);
+            box-shadow: 0 0 0 3px #d4a574, 0 0 0 6px #333, 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .cell.drag-over {
+            background-color: rgba(250, 204, 21, 0.3) !important;
         }
         .piece.animating {
             transition: transform 0.4s ease-in-out;
             z-index: 100;
+        }
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.4;
+            z-index: 50;
             pointer-events: none;
         }
-        .drag-preview {
-            position: fixed;
-            pointer-events: none;
-            z-index: 1000;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333, 0 10px 30px rgba(0,0,0,0.6);
-            transform: translate(-50%, -50%) scale(1.1);
-        }
-        .drag-preview.R, .drag-preview.RQ { background: linear-gradient(145deg, rgb(200, 60, 60), rgb(160, 35, 35)); }
-        .drag-preview.B, .drag-preview.BQ { background: linear-gradient(145deg, rgb(60, 58, 58), rgb(25, 24, 24)); }
-        .drag-preview.queen::after {
-            content: '\u265B';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 28px;
-            color: gold;
-        }
-        .turn-indicator {
-            padding: 12px 24px;
-            background-color: #2f2d2d;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            min-width: 140px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        .turn-indicator.red-turn {
-            border: 3px solid rgb(183, 48, 48);
-            box-shadow: 0 0 15px rgba(183, 48, 48, 0.3);
-        }
-        .turn-indicator.black-turn {
-            border: 3px solid rgb(80, 80, 80);
-            box-shadow: 0 0 15px rgba(80, 80, 80, 0.3);
-        }
-        .controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        .btn {
-            padding: 12px 24px;
-            background-color: #2f2d2d;
-            color: rgb(196, 190, 190);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            font-weight: 500;
-        }
-        .btn:hover {
-            background-color: #444;
-            transform: translateY(-2px);
-        }
-        .help-btn {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .mode-badge {
-            padding: 8px 16px;
-            background-color: #3a2929;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: #ccc;
-        }
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal {
-            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
-            padding: 40px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .modal h2 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-        }
-        .modal p, .modal ul {
-            font-size: 1rem;
-            color: #bbb;
-            margin-bottom: 15px;
-            text-align: left;
-            line-height: 1.6;
-        }
-        .modal ul {
-            padding-left: 20px;
-        }
-        .modal li {
-            margin-bottom: 8px;
-        }
-        .modal .btn {
-            margin-top: 20px;
-        }
-        .signature-watermark {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            opacity: 0.3;
-            pointer-events: none;
-        }
-        .signature-watermark svg {
+        .watermark svg {
             width: 100px;
             height: auto;
         }
-
-        /* Mobile Responsive */
-        @media (max-width: 520px) {
-            .game-container {
-                gap: 15px;
-                padding: 10px;
-            }
-            .header {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .board {
-                --cell-size: calc((100vw - 60px) / 8);
-                grid-template-columns: repeat(8, var(--cell-size));
-                grid-template-rows: repeat(8, var(--cell-size));
-                border-width: 10px;
-            }
-            .cell {
-                width: var(--cell-size);
-                height: var(--cell-size);
-            }
-            .piece {
-                width: calc(var(--cell-size) - 10px);
-                height: calc(var(--cell-size) - 10px);
-                box-shadow: 0 0 0 2px rgb(203, 186, 151), 0 0 0 4px #333, 0 2px 6px rgba(0,0,0,0.4);
-            }
-            .queen::after {
-                font-size: calc(var(--cell-size) * 0.45);
-            }
-            .turn-indicator {
-                padding: 10px 18px;
-                font-size: 1rem;
-                min-width: 120px;
-            }
-            .controls {
-                gap: 10px;
-            }
-            .btn {
-                padding: 10px 18px;
-                font-size: 0.9rem;
-            }
-            .help-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 1rem;
-            }
-            .mode-badge {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
-            .modal {
-                padding: 25px;
-                margin: 15px;
-                max-width: calc(100vw - 30px);
-            }
-            .modal h2 {
-                font-size: 1.4rem;
-            }
-            .modal p, .modal ul {
-                font-size: 0.9rem;
-            }
-            .drag-preview {
-                width: calc((100vw - 60px) / 8 - 6px);
-                height: calc((100vw - 60px) / 8 - 6px);
-            }
-            .signature-watermark svg {
-                width: 70px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .board {
-                border-width: 8px;
-            }
-            .btn {
-                padding: 8px 14px;
-                font-size: 0.85rem;
-            }
+        @media (max-width: 480px) {
+            .watermark svg { width: 70px; }
+            .watermark { bottom: 10px; right: 10px; }
         }
     </style>
 </head>
-<body>
-    <div class="game-container">
-        <div class="header">
-            <div id="turn-indicator" class="turn-indicator red-turn">Red's Turn</div>
-            <div id="mode-badge" class="mode-badge">vs Computer</div>
+<body class="min-h-screen bg-gradient-to-br from-zinc-800 via-zinc-900 to-black text-white font-sans flex items-center justify-center p-4">
+
+    <div class="flex flex-col items-center gap-5">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full max-w-[520px] justify-between">
+            <div id="turn-indicator" class="px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-red-600 shadow-lg shadow-red-900/30 min-w-[140px] text-center">
+                Red's Turn
+            </div>
+            <div id="mode-badge" class="px-4 py-2 bg-amber-900/50 rounded-full text-sm text-zinc-300">
+                vs Computer
+            </div>
         </div>
 
-        <div id="board" class="board">
+        <!-- Board -->
+        <div id="board" class="board rounded-lg overflow-hidden shadow-2xl border-[12px] border-amber-900/80">
             {% for row in range(8) %}
                 {% for col in range(8) %}
-                    <div class="cell {{ 'black' if (row + col) % 2 else 'white' }}" data-x="{{ row }}" data-y="{{ col }}">
+                    <div class="cell {{ 'bg-amber-900/90' if (row + col) % 2 else 'bg-stone-200' }}" data-x="{{ row }}" data-y="{{ col }}">
                         {% if board[row][col] != ' ' %}
-                            <div class="piece {{ board[row][col] }} {{ 'queen' if 'Q' in board[row][col] }}" draggable="false"></div>
+                            <div class="piece {{ board[row][col] }}" data-type="{{ board[row][col] }}">
+                                {% if 'Q' in board[row][col] %}
+                                <svg class="crown-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 17L4.5 7L8.5 11L12 4L15.5 11L19.5 7L22 17H2Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/>
+                                    <circle cx="4.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                                    <circle cx="12" cy="4" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                                    <circle cx="19.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                                    <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
+                                </svg>
+                                {% endif %}
+                            </div>
                         {% endif %}
                     </div>
                 {% endfor %}
             {% endfor %}
         </div>
 
-        <div class="controls">
-            <button class="btn" onclick="goHome()">Home</button>
-            <button class="btn" onclick="resetGame()">New Game</button>
-            <button class="btn help-btn" onclick="showHelp()">?</button>
+        <!-- Controls -->
+        <div class="flex items-center gap-3">
+            <button onclick="goHome()" class="px-5 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium transition-all hover:scale-105">
+                Home
+            </button>
+            <button onclick="resetGame()" class="px-5 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium transition-all hover:scale-105">
+                New Game
+            </button>
+            <button onclick="showHelp()" class="w-11 h-11 bg-zinc-700 hover:bg-zinc-600 rounded-full font-bold text-xl transition-all hover:scale-105 flex items-center justify-center">
+                ?
+            </button>
         </div>
     </div>
 
-    <div id="game-over-overlay" class="overlay">
-        <div class="modal">
-            <h2 id="winner-text">Game Over!</h2>
-            <p id="winner-subtitle">Well played!</p>
-            <button class="btn" onclick="goHome()">Home</button>
-            <button class="btn" onclick="playAgain()">Play Again</button>
+    <!-- Game Over Overlay -->
+    <div id="game-over-overlay" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
+        <div class="bg-gradient-to-br from-zinc-700 to-zinc-800 p-10 rounded-2xl text-center shadow-2xl max-w-sm mx-4">
+            <h2 id="winner-text" class="text-3xl font-bold mb-2">Game Over!</h2>
+            <p id="winner-subtitle" class="text-zinc-400 mb-6">Well played!</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="goHome()" class="px-5 py-3 bg-zinc-600 hover:bg-zinc-500 rounded-lg font-medium transition-all">Home</button>
+                <button onclick="playAgain()" class="px-5 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-all">Play Again</button>
+            </div>
         </div>
     </div>
 
-    <div id="help-overlay" class="overlay">
-        <div class="modal">
-            <h2>How to Play Checkers</h2>
-            <p><strong>Objective:</strong> Capture all of your opponent's pieces or block them so they cannot move.</p>
-            <ul>
-                <li><strong>Movement:</strong> Pieces move diagonally forward, one square at a time.</li>
-                <li><strong>Capturing:</strong> Jump over an opponent's piece diagonally to capture it. You must land on an empty square.</li>
-                <li><strong>Mandatory Captures:</strong> If a capture is available, you must take it!</li>
-                <li><strong>Multiple Jumps:</strong> If after capturing you can capture again, you must continue jumping.</li>
-                <li><strong>Kings:</strong> When a piece reaches the opposite end of the board, it becomes a King (marked with a crown). Kings can move and capture both forward and backward.</li>
-            </ul>
-            <p><strong>Controls:</strong> Drag and drop your pieces, or click to select and click again to move.</p>
-            <button class="btn" onclick="hideHelp()">Got it!</button>
+    <!-- Help Overlay -->
+    <div id="help-overlay" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+        <div class="bg-gradient-to-br from-zinc-700 to-zinc-800 p-8 rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-4">How to Play Checkers</h2>
+            <div class="space-y-3 text-zinc-300 text-sm leading-relaxed">
+                <p><strong class="text-white">Objective:</strong> Capture all opponent pieces or block them from moving.</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong class="text-white">Movement:</strong> Pieces move diagonally forward, one square at a time.</li>
+                    <li><strong class="text-white">Capturing:</strong> Jump over an opponent's piece diagonally to capture it.</li>
+                    <li><strong class="text-white">Mandatory Captures:</strong> If a capture is available, you must take it!</li>
+                    <li><strong class="text-white">Multiple Jumps:</strong> Continue jumping if more captures are available.</li>
+                    <li><strong class="text-white">Kings:</strong> Reach the opposite end to become a King. Kings move both forward and backward.</li>
+                </ul>
+                <p><strong class="text-white">Controls:</strong> Drag and drop pieces, or click to select then click destination.</p>
+            </div>
+            <button onclick="hideHelp()" class="mt-6 w-full py-3 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-all">Got it!</button>
         </div>
     </div>
 
-    <div class="signature-watermark">
+    <!-- Watermark -->
+    <div class="watermark">
         <svg viewBox="200 80 520 120" xmlns="http://www.w3.org/2000/svg" fill="none">
             <path d="M220.228 124.394C216.295 136.784 197.467 151.923 213.286 164.067C233.494 179.581 311.081 114.354 287.264 97.9612C267.04 84.0407 230.956 101.639 227.963 116.478M275.112 144.263C303.698 122.796 289.382 147.552 285.867 155.813C283.982 160.244 311.078 154.469 314.689 153.41M314.689 153.41C359.924 140.146 311.373 127.238 314.689 153.41ZM314.689 153.41C316.788 169.975 356.198 147.569 361.872 143.865M361.872 143.865C379.996 132.033 396.654 110.1 396.142 93.0151C395.587 74.4442 371.8 126.504 361.872 143.865ZM361.872 143.865C358.713 149.388 356.853 155.059 354.151 160.646C353.56 161.868 357.043 156.178 366.562 150.218C393.466 133.372 380.946 180.567 408.42 157.542M408.42 157.542C422.113 146.068 406.519 142.186 408.42 157.542ZM408.42 157.542C409.261 164.335 419.291 164.376 427.904 164.518C446.758 164.829 436.156 128.918 413.569 144.253M443.616 141.885C461.237 189.037 461.247 141.561 494.921 144.092M530.069 142.59C492.635 142.764 525.754 153.079 519.876 160.419C508.831 167.863 482.829 171.175 468.519 176M567.777 142.645C548.176 142.644 535.687 158.692 551.095 168.622C563.172 176.406 592.423 158.35 598.782 153.314M598.782 153.314C612.006 142.84 620.551 100.564 615.577 113.834C610.591 127.137 604.922 140.225 598.782 153.314ZM598.782 153.314C586.286 179.948 593.453 164.248 617.545 156.091C635.029 150.172 619.238 171.51 629.98 172.179C645.463 173.144 652.018 163.388 658.901 155.799M660.543 135.24C663.427 135.24 666.987 132.79 669 131.565"
-                  stroke="white"
-                  stroke-width="5"
-                  stroke-linecap="round"
-                  fill="none"/>
+                  stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
         </svg>
     </div>
 
@@ -372,72 +205,72 @@
             let isAnimating = false;
             let gameOver = false;
 
-            // Drag state
             let draggedPiece = null;
-            let dragPreview = null;
+            let dragGhost = null;
             let startCell = null;
 
             document.getElementById('mode-badge').textContent = gameMode === 'ai' ? 'vs Computer' : 'vs Human';
 
             const board = document.getElementById("board");
 
-            // Mouse/Touch drag handlers
+            // Crown SVG template
+            const crownSVG = `<svg class="crown-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 17L4.5 7L8.5 11L12 4L15.5 11L19.5 7L22 17H2Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/>
+                <circle cx="4.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                <circle cx="12" cy="4" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                <circle cx="19.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
+            </svg>`;
+
             board.addEventListener("mousedown", handleDragStart);
             board.addEventListener("touchstart", handleDragStart, { passive: false });
             document.addEventListener("mousemove", handleDragMove);
             document.addEventListener("touchmove", handleDragMove, { passive: false });
             document.addEventListener("mouseup", handleDragEnd);
             document.addEventListener("touchend", handleDragEnd);
-
-            // Click handler for fallback
             board.addEventListener("click", handleClick);
 
-            function handleClick(event) {
+            function handleClick(e) {
                 if (isAnimating || gameOver || draggedPiece) return;
                 if (gameMode === 'ai' && currentPlayer !== 'R') return;
 
-                let clickedElement = event.target;
+                let target = e.target.closest('.piece') || e.target;
 
-                if (clickedElement.classList.contains("piece") && canMovePiece(clickedElement)) {
-                    if (selectedPiece) {
-                        selectedPiece.classList.remove('selected');
-                    }
-                    selectedPiece = clickedElement;
-                    selectedPiece.classList.add('selected');
-                } else if (selectedPiece && clickedElement.classList.contains("cell")) {
-                    makeMove(selectedPiece.parentElement, clickedElement);
+                if (target.classList.contains('piece') && canMovePiece(target)) {
                     if (selectedPiece) selectedPiece.classList.remove('selected');
+                    selectedPiece = target;
+                    selectedPiece.classList.add('selected');
+                } else if (selectedPiece && target.classList.contains('cell')) {
+                    makeMove(selectedPiece.parentElement, target);
+                    selectedPiece.classList.remove('selected');
                     selectedPiece = null;
                 }
             }
 
-            function handleDragStart(event) {
+            function handleDragStart(e) {
                 if (isAnimating || gameOver) return;
                 if (gameMode === 'ai' && currentPlayer !== 'R') return;
 
-                let target = event.target;
-                if (event.touches) {
-                    event.preventDefault();
-                    target = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
-                }
+                let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                let target = document.elementFromPoint(clientX, clientY);
+                if (target) target = target.closest('.piece') || target;
 
-                if (target && target.classList.contains("piece") && canMovePiece(target)) {
+                if (target && target.classList.contains('piece') && canMovePiece(target)) {
+                    if (e.touches) e.preventDefault();
                     draggedPiece = target;
                     startCell = target.parentElement;
                     draggedPiece.classList.add('dragging');
 
-                    // Create drag preview
-                    dragPreview = document.createElement('div');
-                    dragPreview.className = 'drag-preview ' + getPieceClass(draggedPiece);
-                    if (draggedPiece.classList.contains('queen')) {
-                        dragPreview.classList.add('queen');
+                    // Create ghost
+                    dragGhost = document.createElement('div');
+                    dragGhost.className = 'drag-ghost ' + getPieceType(draggedPiece);
+                    if (isQueen(draggedPiece)) {
+                        dragGhost.innerHTML = crownSVG;
                     }
-                    document.body.appendChild(dragPreview);
-
-                    let clientX = event.clientX || event.touches[0].clientX;
-                    let clientY = event.clientY || event.touches[0].clientY;
-                    dragPreview.style.left = clientX + 'px';
-                    dragPreview.style.top = clientY + 'px';
+                    document.body.appendChild(dragGhost);
+                    dragGhost.style.left = clientX + 'px';
+                    dragGhost.style.top = clientY + 'px';
 
                     if (selectedPiece) {
                         selectedPiece.classList.remove('selected');
@@ -446,91 +279,87 @@
                 }
             }
 
-            function handleDragMove(event) {
-                if (!draggedPiece || !dragPreview) return;
+            function handleDragMove(e) {
+                if (!draggedPiece || !dragGhost) return;
+                let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                if (e.touches) e.preventDefault();
 
-                let clientX, clientY;
-                if (event.touches) {
-                    event.preventDefault();
-                    clientX = event.touches[0].clientX;
-                    clientY = event.touches[0].clientY;
-                } else {
-                    clientX = event.clientX;
-                    clientY = event.clientY;
-                }
+                dragGhost.style.left = clientX + 'px';
+                dragGhost.style.top = clientY + 'px';
 
-                dragPreview.style.left = clientX + 'px';
-                dragPreview.style.top = clientY + 'px';
-
-                // Highlight drop target
                 document.querySelectorAll('.cell.drag-over').forEach(c => c.classList.remove('drag-over'));
-                let targetElement = document.elementFromPoint(clientX, clientY);
-                if (targetElement) {
-                    let cell = targetElement.closest('.cell');
-                    if (cell && cell.classList.contains('black') && !cell.querySelector('.piece')) {
-                        cell.classList.add('drag-over');
-                    }
+                let el = document.elementFromPoint(clientX, clientY);
+                if (el) {
+                    let cell = el.closest('.cell');
+                    if (cell && !cell.querySelector('.piece')) cell.classList.add('drag-over');
                 }
             }
 
-            function handleDragEnd(event) {
+            function handleDragEnd(e) {
                 if (!draggedPiece) return;
 
-                let clientX, clientY;
-                if (event.changedTouches) {
-                    clientX = event.changedTouches[0].clientX;
-                    clientY = event.changedTouches[0].clientY;
-                } else {
-                    clientX = event.clientX;
-                    clientY = event.clientY;
-                }
+                let clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+                let clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
 
                 document.querySelectorAll('.cell.drag-over').forEach(c => c.classList.remove('drag-over'));
 
-                let targetElement = document.elementFromPoint(clientX, clientY);
-                let targetCell = targetElement ? targetElement.closest('.cell') : null;
+                let el = document.elementFromPoint(clientX, clientY);
+                let targetCell = el ? el.closest('.cell') : null;
 
-                if (targetCell && targetCell !== startCell && targetCell.classList.contains('black')) {
-                    makeMove(startCell, targetCell);
+                if (targetCell && targetCell !== startCell && !targetCell.querySelector('.piece')) {
+                    // Immediately move the piece visually before API call
+                    const pieceType = getPieceType(draggedPiece);
+                    const wasQueen = isQueen(draggedPiece);
+                    draggedPiece.classList.remove('dragging');
+                    startCell.innerHTML = '';
+                    targetCell.innerHTML = createPieceHTML(pieceType, wasQueen);
+
+                    makeMove(startCell, targetCell, true);
+                } else {
+                    draggedPiece.classList.remove('dragging');
                 }
 
-                draggedPiece.classList.remove('dragging');
-                if (dragPreview) {
-                    dragPreview.remove();
-                    dragPreview = null;
-                }
+                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
                 draggedPiece = null;
                 startCell = null;
             }
 
             function canMovePiece(piece) {
-                return piece.classList.contains(currentPlayer) || piece.classList.contains(currentPlayer + 'Q');
+                let type = getPieceType(piece);
+                return type.startsWith(currentPlayer);
             }
 
-            function getPieceClass(piece) {
-                if (piece.classList.contains('RQ')) return 'RQ';
-                if (piece.classList.contains('BQ')) return 'BQ';
-                if (piece.classList.contains('R')) return 'R';
-                if (piece.classList.contains('B')) return 'B';
-                return '';
+            function getPieceType(piece) {
+                return piece.dataset.type || (piece.classList.contains('RQ') ? 'RQ' : piece.classList.contains('BQ') ? 'BQ' : piece.classList.contains('R') ? 'R' : 'B');
             }
 
-            function makeMove(fromCell, toCell) {
-                let startX = parseInt(fromCell.dataset.x, 10);
-                let startY = parseInt(fromCell.dataset.y, 10);
-                let endX = parseInt(toCell.dataset.x, 10);
-                let endY = parseInt(toCell.dataset.y, 10);
+            function isQueen(piece) {
+                let type = getPieceType(piece);
+                return type.includes('Q');
+            }
+
+            function createPieceHTML(type, hasQueen) {
+                let crown = hasQueen || type.includes('Q') ? crownSVG : '';
+                return `<div class="piece ${type}" data-type="${type}">${crown}</div>`;
+            }
+
+            function makeMove(fromCell, toCell, alreadyMoved = false) {
+                let startX = parseInt(fromCell.dataset.x);
+                let startY = parseInt(fromCell.dataset.y);
+                let endX = parseInt(toCell.dataset.x);
+                let endY = parseInt(toCell.dataset.y);
 
                 fetch('/move', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ start: [startX, startY], end: [endX, endY] }),
                 })
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
                     if (data.valid) {
                         if (data.cpu_moves && data.cpu_moves.length > 0) {
-                            updateBoardBeforeCpu(data.board, data.cpu_moves);
+                            updateBoard(data.board, data.cpu_moves);
                             animateCpuMoves(data.cpu_moves, data.board, () => {
                                 currentPlayer = data.current_player;
                                 updateTurnIndicator();
@@ -542,165 +371,123 @@
                             updateTurnIndicator();
                             if (data.game_over) showGameOver(data.winner);
                         }
-                    } else if (data.mandatory_capture) {
-                        showMessage("Capture available! You must take it.");
+                    } else {
+                        // Invalid move - revert
+                        updateBoard(data.board);
+                        if (data.mandatory_capture) alert("Capture available! You must take it.");
                     }
                 });
             }
 
-            function updateBoardBeforeCpu(finalBoard, cpuMoves) {
-                let boardCopy = JSON.parse(JSON.stringify(finalBoard));
-                let piecePositions = [];
+            function updateBoard(newBoard, skipPositions = []) {
+                let cells = document.querySelectorAll('.cell');
+                cells.forEach((cell, idx) => {
+                    let row = Math.floor(idx / 8);
+                    let col = idx % 8;
 
-                for (let i = cpuMoves.length - 1; i >= 0; i--) {
-                    let move = cpuMoves[i];
-                    if (i === cpuMoves.length - 1) {
-                        piecePositions.unshift({ move: move, piece: boardCopy[move.end[0]][move.end[1]] });
-                        boardCopy[move.end[0]][move.end[1]] = ' ';
-                    } else {
-                        piecePositions.unshift({ move: move, piece: piecePositions[0].piece });
+                    // Skip cells that are part of animation
+                    if (skipPositions.some(m => (m.start[0] === row && m.start[1] === col) || (m.end[0] === row && m.end[1] === col))) {
+                        return;
                     }
-                }
 
-                if (cpuMoves.length > 0) {
-                    boardCopy[cpuMoves[0].start[0]][cpuMoves[0].start[1]] = piecePositions[0].piece;
-                }
-
-                updateBoard(boardCopy);
+                    let type = newBoard[row][col];
+                    if (type === ' ') {
+                        cell.innerHTML = '';
+                    } else {
+                        cell.innerHTML = createPieceHTML(type, type.includes('Q'));
+                    }
+                });
             }
 
             function animateCpuMoves(moves, finalBoard, callback) {
                 if (moves.length === 0) { callback(); return; }
-
                 isAnimating = true;
-                let moveIndex = 0;
+                let idx = 0;
 
-                function animateNext() {
-                    if (moveIndex >= moves.length) {
+                function next() {
+                    if (idx >= moves.length) {
                         isAnimating = false;
                         updateBoard(finalBoard);
                         callback();
                         return;
                     }
 
-                    let move = moves[moveIndex];
-                    let startCell = document.querySelector('.cell[data-x="' + move.start[0] + '"][data-y="' + move.start[1] + '"]');
-                    let endCell = document.querySelector('.cell[data-x="' + move.end[0] + '"][data-y="' + move.end[1] + '"]');
-                    let piece = startCell ? startCell.querySelector('.piece') : null;
+                    let m = moves[idx];
+                    let from = document.querySelector(`.cell[data-x="${m.start[0]}"][data-y="${m.start[1]}"]`);
+                    let to = document.querySelector(`.cell[data-x="${m.end[0]}"][data-y="${m.end[1]}"]`);
+                    let piece = from ? from.querySelector('.piece') : null;
 
-                    if (!piece) { moveIndex++; animateNext(); return; }
+                    if (!piece) { idx++; next(); return; }
 
-                    let startRect = startCell.getBoundingClientRect();
-                    let endRect = endCell.getBoundingClientRect();
-                    let deltaX = endRect.left - startRect.left;
-                    let deltaY = endRect.top - startRect.top;
+                    let fromRect = from.getBoundingClientRect();
+                    let toRect = to.getBoundingClientRect();
+                    let dx = toRect.left - fromRect.left;
+                    let dy = toRect.top - fromRect.top;
 
                     piece.classList.add('animating');
-                    piece.style.transform = 'translate(' + deltaX + 'px, ' + deltaY + 'px)';
+                    piece.style.transform = `translate(${dx}px, ${dy}px)`;
 
                     setTimeout(() => {
                         piece.classList.remove('animating');
                         piece.style.transform = '';
-                        startCell.innerHTML = '';
+                        from.innerHTML = '';
 
-                        if (moveIndex === moves.length - 1) {
-                            let finalPiece = finalBoard[move.end[0]][move.end[1]];
-                            let className = 'piece ' + finalPiece;
-                            if (finalPiece.includes('Q')) className += ' queen';
-                            endCell.innerHTML = '<div class="' + className + '" draggable="false"></div>';
-                        } else {
-                            let classes = piece.className.replace('animating', '').trim();
-                            endCell.innerHTML = '<div class="' + classes + '" draggable="false"></div>';
+                        let finalType = finalBoard[m.end[0]][m.end[1]];
+                        to.innerHTML = createPieceHTML(finalType, finalType.includes('Q'));
+
+                        // Remove captured piece
+                        if (Math.abs(m.start[0] - m.end[0]) === 2) {
+                            let midRow = (m.start[0] + m.end[0]) / 2;
+                            let midCol = (m.start[1] + m.end[1]) / 2;
+                            let mid = document.querySelector(`.cell[data-x="${midRow}"][data-y="${midCol}"]`);
+                            if (mid) mid.innerHTML = '';
                         }
 
-                        if (Math.abs(move.start[0] - move.end[0]) === 2) {
-                            let midRow = Math.floor((move.start[0] + move.end[0]) / 2);
-                            let midCol = Math.floor((move.start[1] + move.end[1]) / 2);
-                            let midCell = document.querySelector('.cell[data-x="' + midRow + '"][data-y="' + midCol + '"]');
-                            if (midCell) midCell.innerHTML = '';
-                        }
-
-                        moveIndex++;
-                        setTimeout(animateNext, 150);
+                        idx++;
+                        setTimeout(next, 150);
                     }, 400);
                 }
 
-                setTimeout(animateNext, 300);
-            }
-
-            function updateBoard(newBoard) {
-                let cells = document.querySelectorAll('.cell');
-                cells.forEach((cell, index) => {
-                    let row = Math.floor(index / 8);
-                    let col = index % 8;
-                    let pieceType = newBoard[row][col];
-
-                    if (pieceType === ' ') {
-                        cell.innerHTML = '';
-                    } else {
-                        let className = 'piece ' + pieceType;
-                        if (pieceType.includes('Q')) className += ' queen';
-                        cell.innerHTML = '<div class="' + className + '" draggable="false"></div>';
-                    }
-                });
+                setTimeout(next, 300);
             }
 
             function updateTurnIndicator() {
-                let indicator = document.getElementById('turn-indicator');
+                let el = document.getElementById('turn-indicator');
                 if (currentPlayer === 'R') {
-                    indicator.textContent = "Red's Turn";
-                    indicator.className = 'turn-indicator red-turn';
+                    el.textContent = "Red's Turn";
+                    el.className = 'px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-red-600 shadow-lg shadow-red-900/30 min-w-[140px] text-center';
                 } else {
-                    indicator.textContent = "Black's Turn";
-                    indicator.className = 'turn-indicator black-turn';
+                    el.textContent = "Black's Turn";
+                    el.className = 'px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-zinc-500 shadow-lg shadow-zinc-900/30 min-w-[140px] text-center';
                 }
             }
 
             function showGameOver(winner) {
                 gameOver = true;
                 let overlay = document.getElementById('game-over-overlay');
-                let winnerText = document.getElementById('winner-text');
-                let subtitle = document.getElementById('winner-subtitle');
+                let txt = document.getElementById('winner-text');
+                let sub = document.getElementById('winner-subtitle');
 
-                if (winner === 'R') {
-                    winnerText.textContent = 'Red Wins!';
-                    winnerText.style.color = 'rgb(183, 48, 48)';
-                } else {
-                    winnerText.textContent = 'Black Wins!';
-                    winnerText.style.color = '#888';
-                }
-
-                subtitle.textContent = gameMode === 'ai'
-                    ? (winner === 'R' ? 'You beat the computer!' : 'The computer wins!')
-                    : 'Great game!';
-
-                overlay.style.display = 'flex';
+                txt.textContent = winner === 'R' ? 'Red Wins!' : 'Black Wins!';
+                txt.style.color = winner === 'R' ? '#dc2626' : '#a1a1aa';
+                sub.textContent = gameMode === 'ai' ? (winner === 'R' ? 'You beat the computer!' : 'The computer wins!') : 'Great game!';
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
             }
 
-            function showMessage(msg) {
-                alert(msg);
-            }
-
-            window.goHome = function() {
-                window.location.href = '/';
+            window.goHome = () => { window.location.href = '/'; };
+            window.resetGame = () => {
+                fetch('/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: gameMode }) })
+                .then(() => window.location.reload());
             };
-
-            window.resetGame = function() {
-                fetch('/reset', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mode: gameMode }),
-                }).then(() => window.location.reload());
+            window.playAgain = () => resetGame();
+            window.showHelp = () => {
+                document.getElementById('help-overlay').classList.remove('hidden');
+                document.getElementById('help-overlay').classList.add('flex');
             };
-
-            window.playAgain = function() { resetGame(); };
-
-            window.showHelp = function() {
-                document.getElementById('help-overlay').style.display = 'flex';
-            };
-
-            window.hideHelp = function() {
-                document.getElementById('help-overlay').style.display = 'none';
+            window.hideHelp = () => {
+                document.getElementById('help-overlay').classList.add('hidden');
+                document.getElementById('help-overlay').classList.remove('flex');
             };
         });
     </script>
