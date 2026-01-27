@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Checkers Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         * {
             margin: 0;
@@ -125,6 +126,52 @@
         .signature-watermark svg {
             width: 120px;
             height: auto;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .welcome-container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+            }
+            .queen-icon {
+                width: 90px;
+                height: 90px;
+                margin-bottom: 30px;
+            }
+            .queen-icon::after {
+                font-size: 45px;
+            }
+            .menu {
+                margin-bottom: 30px;
+            }
+            .menu-button {
+                padding: 15px 30px;
+                font-size: 1.1rem;
+                min-width: 240px;
+                width: 100%;
+            }
+            .about-section {
+                padding: 18px;
+            }
+            .about-section h3 {
+                font-size: 1rem;
+            }
+            .about-section p {
+                font-size: 0.85rem;
+            }
+            .about-links {
+                gap: 15px;
+            }
+            .about-links a {
+                font-size: 0.85rem;
+            }
+            .signature-watermark svg {
+                width: 80px;
+            }
         }
     </style>
 </head>
