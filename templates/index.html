@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Checkers Game</title>
+    <title>Liviu's Checkers</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -89,6 +89,37 @@
             transition: transform 0.4s ease-in-out;
             z-index: 100;
         }
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #3f3f46;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle-switch.active {
+            background: #dc2626;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+        /* Modal backdrop */
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
         /* Watermark */
         .watermark {
             position: fixed;
@@ -108,16 +139,25 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-zinc-800 via-zinc-900 to-black text-white font-sans flex items-center justify-center p-4">
+<body class="min-h-screen bg-zinc-900 text-white font-sans flex items-center justify-center p-4">
 
     <div class="flex flex-col items-center gap-5">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full max-w-[520px] justify-between">
-            <div id="turn-indicator" class="px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-red-600 shadow-lg shadow-red-900/30 min-w-[140px] text-center">
+            <div id="turn-indicator" class="px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-red-600 min-w-[140px] text-center">
                 Red's Turn
             </div>
-            <div id="mode-badge" class="px-4 py-2 bg-amber-900/50 rounded-full text-sm text-zinc-300">
-                vs Computer
+            <div class="flex items-center gap-3">
+                <div id="mode-badge" class="px-4 py-2 bg-zinc-800 rounded-full text-sm text-zinc-400">
+                    vs Computer
+                </div>
+                <!-- Sound Toggle -->
+                <div class="flex items-center gap-2">
+                    <svg id="sound-icon" class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                    </svg>
+                    <div id="sound-toggle" class="toggle-switch active" onclick="toggleSound()"></div>
+                </div>
             </div>
         </div>
 
@@ -146,46 +186,62 @@
 
         <!-- Controls -->
         <div class="flex items-center gap-3">
-            <button onclick="goHome()" class="px-5 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium transition-all hover:scale-105">
+            <button onclick="goHome()" class="px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg font-medium transition-colors border border-zinc-700">
                 Home
             </button>
-            <button onclick="resetGame()" class="px-5 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium transition-all hover:scale-105">
+            <button onclick="confirmNewGame()" class="px-5 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg font-medium transition-colors border border-zinc-700">
                 New Game
             </button>
-            <button onclick="showHelp()" class="w-11 h-11 bg-zinc-700 hover:bg-zinc-600 rounded-full font-bold text-xl transition-all hover:scale-105 flex items-center justify-center">
+            <button onclick="showHelp()" class="w-11 h-11 bg-zinc-800 hover:bg-zinc-700 rounded-full font-bold text-xl transition-colors border border-zinc-700 flex items-center justify-center">
                 ?
             </button>
         </div>
     </div>
 
+    <!-- New Game Confirmation Modal -->
+    <div id="new-game-modal" class="fixed inset-0 bg-black/70 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-zinc-800 p-6 rounded-xl shadow-2xl max-w-sm mx-4 border border-zinc-700">
+            <h3 class="text-lg font-semibold mb-2">Start New Game?</h3>
+            <p class="text-zinc-400 text-sm mb-6">Your current game progress will be lost.</p>
+            <div class="flex gap-3 justify-end">
+                <button onclick="hideNewGameModal()" class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium transition-colors">
+                    Cancel
+                </button>
+                <button onclick="resetGame()" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-colors">
+                    New Game
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Game Over Overlay -->
-    <div id="game-over-overlay" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
-        <div class="bg-gradient-to-br from-zinc-700 to-zinc-800 p-10 rounded-2xl text-center shadow-2xl max-w-sm mx-4">
+    <div id="game-over-overlay" class="fixed inset-0 bg-black/70 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-zinc-800 p-8 rounded-xl text-center shadow-2xl max-w-sm mx-4 border border-zinc-700">
             <h2 id="winner-text" class="text-3xl font-bold mb-2">Game Over!</h2>
             <p id="winner-subtitle" class="text-zinc-400 mb-6">Well played!</p>
             <div class="flex gap-3 justify-center">
-                <button onclick="goHome()" class="px-5 py-3 bg-zinc-600 hover:bg-zinc-500 rounded-lg font-medium transition-all">Home</button>
-                <button onclick="playAgain()" class="px-5 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-all">Play Again</button>
+                <button onclick="goHome()" class="px-5 py-3 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium transition-colors">Home</button>
+                <button onclick="playAgain()" class="px-5 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-colors">Play Again</button>
             </div>
         </div>
     </div>
 
     <!-- Help Overlay -->
-    <div id="help-overlay" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
-        <div class="bg-gradient-to-br from-zinc-700 to-zinc-800 p-8 rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <h2 class="text-2xl font-bold mb-4">How to Play Checkers</h2>
+    <div id="help-overlay" class="fixed inset-0 bg-black/70 modal-backdrop hidden items-center justify-center z-50 p-4">
+        <div class="bg-zinc-800 p-6 rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto border border-zinc-700">
+            <h2 class="text-xl font-bold mb-4">How to Play</h2>
             <div class="space-y-3 text-zinc-300 text-sm leading-relaxed">
                 <p><strong class="text-white">Objective:</strong> Capture all opponent pieces or block them from moving.</p>
                 <ul class="list-disc pl-5 space-y-2">
-                    <li><strong class="text-white">Movement:</strong> Pieces move diagonally forward, one square at a time.</li>
-                    <li><strong class="text-white">Capturing:</strong> Jump over an opponent's piece diagonally to capture it.</li>
-                    <li><strong class="text-white">Mandatory Captures:</strong> If a capture is available, you must take it!</li>
-                    <li><strong class="text-white">Multiple Jumps:</strong> Continue jumping if more captures are available.</li>
-                    <li><strong class="text-white">Kings:</strong> Reach the opposite end to become a King. Kings move both forward and backward.</li>
+                    <li><strong class="text-white">Movement:</strong> Pieces move diagonally forward one square at a time.</li>
+                    <li><strong class="text-white">Capturing:</strong> Jump over an opponent's piece diagonally to capture it. Captures can be made both forward and backward.</li>
+                    <li><strong class="text-white">Mandatory Captures:</strong> If a capture is available, you must take it.</li>
+                    <li><strong class="text-white">Multiple Jumps:</strong> If another capture is available after jumping, you must continue.</li>
+                    <li><strong class="text-white">Kings:</strong> Reach the opposite end to become a King. Kings can move and capture in all diagonal directions.</li>
                 </ul>
-                <p><strong class="text-white">Controls:</strong> Drag and drop pieces, or click to select then click destination.</p>
+                <p class="pt-2 text-zinc-400"><strong class="text-zinc-300">Controls:</strong> Drag and drop pieces, or click to select then click the destination.</p>
             </div>
-            <button onclick="hideHelp()" class="mt-6 w-full py-3 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-all">Got it!</button>
+            <button onclick="hideHelp()" class="mt-6 w-full py-3 bg-red-600 hover:bg-red-500 rounded-lg font-medium transition-colors">Got it</button>
         </div>
     </div>
 
@@ -197,6 +253,11 @@
         </svg>
     </div>
 
+    <!-- Audio elements (will fail silently if files don't exist) -->
+    <audio id="sound-pick" preload="auto"><source src="/static/sfx/pick.mp3" type="audio/mpeg"></audio>
+    <audio id="sound-drop" preload="auto"><source src="/static/sfx/drop.mp3" type="audio/mpeg"></audio>
+    <audio id="sound-win" preload="auto"><source src="/static/sfx/win.mp3" type="audio/mpeg"></audio>
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let selectedPiece = null;
@@ -204,10 +265,14 @@
             let gameMode = localStorage.getItem('gameMode') || 'ai';
             let isAnimating = false;
             let gameOver = false;
+            let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
             let draggedPiece = null;
             let dragGhost = null;
             let startCell = null;
+
+            // Initialize sound toggle state
+            updateSoundToggle();
 
             document.getElementById('mode-badge').textContent = gameMode === 'ai' ? 'vs Computer' : 'vs Human';
 
@@ -221,6 +286,36 @@
                 <circle cx="19.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
                 <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
             </svg>`;
+
+            // Sound functions
+            function playSound(soundId) {
+                if (!soundEnabled) return;
+                try {
+                    const audio = document.getElementById(soundId);
+                    if (audio) {
+                        audio.currentTime = 0;
+                        audio.play().catch(() => {});
+                    }
+                } catch (e) {}
+            }
+
+            window.toggleSound = function() {
+                soundEnabled = !soundEnabled;
+                localStorage.setItem('soundEnabled', soundEnabled);
+                updateSoundToggle();
+            };
+
+            function updateSoundToggle() {
+                const toggle = document.getElementById('sound-toggle');
+                const icon = document.getElementById('sound-icon');
+                if (soundEnabled) {
+                    toggle.classList.add('active');
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>';
+                } else {
+                    toggle.classList.remove('active');
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>';
+                }
+            }
 
             board.addEventListener("mousedown", handleDragStart);
             board.addEventListener("touchstart", handleDragStart, { passive: false });
@@ -240,6 +335,7 @@
                     if (selectedPiece) selectedPiece.classList.remove('selected');
                     selectedPiece = target;
                     selectedPiece.classList.add('selected');
+                    playSound('sound-pick');
                 } else if (selectedPiece && target.classList.contains('cell')) {
                     makeMove(selectedPiece.parentElement, target);
                     selectedPiece.classList.remove('selected');
@@ -261,6 +357,7 @@
                     draggedPiece = target;
                     startCell = target.parentElement;
                     draggedPiece.classList.add('dragging');
+                    playSound('sound-pick');
 
                     // Create ghost
                     dragGhost = document.createElement('div');
@@ -358,6 +455,7 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.valid) {
+                        playSound('sound-drop');
                         if (data.cpu_moves && data.cpu_moves.length > 0) {
                             updateBoard(data.board, data.cpu_moves);
                             animateCpuMoves(data.cpu_moves, data.board, () => {
@@ -434,6 +532,7 @@
 
                         let finalType = finalBoard[m.end[0]][m.end[1]];
                         to.innerHTML = createPieceHTML(finalType, finalType.includes('Q'));
+                        playSound('sound-drop');
 
                         // Remove captured piece
                         if (Math.abs(m.start[0] - m.end[0]) === 2) {
@@ -455,15 +554,16 @@
                 let el = document.getElementById('turn-indicator');
                 if (currentPlayer === 'R') {
                     el.textContent = "Red's Turn";
-                    el.className = 'px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-red-600 shadow-lg shadow-red-900/30 min-w-[140px] text-center';
+                    el.className = 'px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-red-600 min-w-[140px] text-center';
                 } else {
                     el.textContent = "Black's Turn";
-                    el.className = 'px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-zinc-500 shadow-lg shadow-zinc-900/30 min-w-[140px] text-center';
+                    el.className = 'px-5 py-3 bg-zinc-800 rounded-lg font-semibold text-lg border-2 border-zinc-500 min-w-[140px] text-center';
                 }
             }
 
             function showGameOver(winner) {
                 gameOver = true;
+                playSound('sound-win');
                 let overlay = document.getElementById('game-over-overlay');
                 let txt = document.getElementById('winner-text');
                 let sub = document.getElementById('winner-subtitle');
@@ -476,6 +576,14 @@
             }
 
             window.goHome = () => { window.location.href = '/'; };
+            window.confirmNewGame = () => {
+                document.getElementById('new-game-modal').classList.remove('hidden');
+                document.getElementById('new-game-modal').classList.add('flex');
+            };
+            window.hideNewGameModal = () => {
+                document.getElementById('new-game-modal').classList.add('hidden');
+                document.getElementById('new-game-modal').classList.remove('flex');
+            };
             window.resetGame = () => {
                 fetch('/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: gameMode }) })
                 .then(() => window.location.reload());
