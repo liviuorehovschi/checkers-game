@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkers Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #464645; /* Dark gray background */
+            color: white;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px); /* Increased cell size */
+            grid-template-rows: repeat(8, 60px); /* Increased cell size */
+            margin-right: 20px; /* Space between board and button */
+            border: 20px solid #3a2929; /* Frame for the board */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+        }
+        .cell {
+            width: 60px; /* Increased cell size */
+            height: 60px; /* Increased cell size */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #444; /* Darker border for cells */
+        }
+        .white { background-color: #d8d7d7; } /* Lighter color for contrast */
+        .black { background-color: #6e4343; } /* Black cells */
+        .piece {
+            width: 50px; /* Slightly smaller than the cell for spacing */
+            height: 50px; /* Slightly smaller than the cell for spacing */
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative; /* Needed for the box-shadow to work properly */
+            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333; /* Double border effect */
+        }
+        .R, .RQ { background-color: rgb(183, 48, 48); }
+        .B, .BQ { background-color: rgb(39, 38, 38); }
+        .queen:after {
+            content: '♛';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: gold;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        .reset-button, .mode-button {
+            padding: 10px 20px;
+            background-color: #2f2d2d;
+            color: rgb(196, 190, 190);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            min-width: 140px;
+        }
+        .reset-button:hover, .mode-button:hover {
+            background-color: #555;
+        }
+        .mode-button.active {
+            background-color: #6e4343;
+            color: white;
+        }
+        .turn-indicator {
+            padding: 10px 20px;
+            background-color: #2f2d2d;
+            border-radius: 5px;
+            font-weight: bold;
+            min-width: 140px;
+            text-align: center;
+        }
+        .turn-indicator.red-turn {
+            border: 2px solid rgb(183, 48, 48);
+        }
+        .turn-indicator.black-turn {
+            border: 2px solid rgb(39, 38, 38);
+        }
+        .piece.selected {
+            box-shadow: 0 0 0 3px rgb(203, 186, 151), 0 0 0 6px #333, 0 0 15px 5px rgba(255, 255, 0, 0.7);
+        }
+        .piece.animating {
+            transition: transform 0.4s ease-in-out;
+            z-index: 100;
+        }
+    </style>    
+    <script src="/static/js/script.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <div id="board" class="board">
+            {% for row in range(8) %}
+                {% for col in range(8) %}
+                    <div class="cell {{ 'black' if (row + col) % 2 else 'white' }}" data-x="{{ row }}" data-y="{{ col }}">
+                        {% if board[row][col] != ' ' %}
+                            <div class="piece {{ board[row][col] }} {{ 'queen' if 'Q' in board[row][col] }}"></div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        <div class="controls">
+            <div id="turn-indicator" class="turn-indicator red-turn">Red's Turn</div>
+            <button id="mode-ai" class="mode-button active" onclick="setMode('ai')">vs Computer</button>
+            <button id="mode-human" class="mode-button" onclick="setMode('human')">vs Human</button>
+            <button onclick="resetGame()" class="reset-button">Reset Game</button>
+        </div>
+    </div>
+</body>
+</html>
