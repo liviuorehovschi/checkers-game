@@ -4,168 +4,262 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Liviu's Checkers</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="apple-touch-icon" href="/static/favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Signature Animation */
-        .signature-path {
-            stroke-dasharray: 2000;
-            stroke-dashoffset: 2000;
-            animation: draw 3s ease-out forwards;
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #0c0c0c 100%);
+            min-height: 100vh;
         }
-        @keyframes draw {
-            to { stroke-dashoffset: 0; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-        .boot-screen {
-            animation: fadeOut 0.5s ease-out 3.5s forwards;
-        }
-        .main-content {
-            opacity: 0;
-            animation: fadeIn 0.5s ease-out 3.5s forwards;
-        }
-        /* Board preview */
         .board-preview {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 1px;
+            gap: 0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
         }
         .preview-cell {
             aspect-ratio: 1;
         }
+        .preview-cell-light { background: #f5f0e6; }
+        .preview-cell-dark { background: #8b4513; }
         .preview-piece {
             width: 70%;
             height: 70%;
             border-radius: 50%;
             margin: 15%;
         }
-        /* Accordion */
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
+        .btn {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
         }
-        .accordion-content.open {
-            max-height: 500px;
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
-        .accordion-icon {
-            transition: transform 0.3s ease;
+        .btn:active {
+            transform: translateY(0);
         }
-        .accordion-icon.open {
-            transform: rotate(180deg);
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.5);
         }
-        /* Watermark */
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            box-shadow: 0 15px 50px -10px rgba(59, 130, 246, 0.6);
+        }
         .watermark {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            opacity: 0.5;
+            bottom: 16px;
+            right: 16px;
+            opacity: 0.35;
             z-index: 50;
+            transition: opacity 0.2s ease;
+        }
+        .watermark:hover {
+            opacity: 0.6;
         }
         .watermark svg {
-            width: 120px;
+            width: 90px;
             height: auto;
         }
         @media (max-width: 480px) {
-            .watermark svg {
-                width: 80px;
-            }
-            .watermark {
-                bottom: 10px;
-                right: 10px;
-            }
+            .watermark svg { width: 60px; }
+            .watermark { bottom: 8px; right: 8px; }
+        }
+        .about-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .about-section.open {
+            max-height: 800px;
+            opacity: 1;
+        }
+        .about-toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        .about-toggle-icon.open {
+            transform: rotate(180deg);
+        }
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        .glow-text {
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
-<body class="min-h-screen bg-zinc-900 text-white font-sans">
+<body class="text-white flex items-center justify-center p-4 min-h-screen">
 
-    <!-- Boot Screen with Signature Animation -->
-    <div id="boot-screen" class="boot-screen fixed inset-0 z-[100] bg-zinc-900 flex items-center justify-center">
-        <svg viewBox="200 80 520 120" xmlns="http://www.w3.org/2000/svg" fill="none" class="w-4/5 max-w-xl">
-            <path class="signature-path"
-                  d="M220.228 124.394C216.295 136.784 197.467 151.923 213.286 164.067C233.494 179.581 311.081 114.354 287.264 97.9612C267.04 84.0407 230.956 101.639 227.963 116.478M275.112 144.263C303.698 122.796 289.382 147.552 285.867 155.813C283.982 160.244 311.078 154.469 314.689 153.41M314.689 153.41C359.924 140.146 311.373 127.238 314.689 153.41ZM314.689 153.41C316.788 169.975 356.198 147.569 361.872 143.865M361.872 143.865C379.996 132.033 396.654 110.1 396.142 93.0151C395.587 74.4442 371.8 126.504 361.872 143.865ZM361.872 143.865C358.713 149.388 356.853 155.059 354.151 160.646C353.56 161.868 357.043 156.178 366.562 150.218C393.466 133.372 380.946 180.567 408.42 157.542M408.42 157.542C422.113 146.068 406.519 142.186 408.42 157.542ZM408.42 157.542C409.261 164.335 419.291 164.376 427.904 164.518C446.758 164.829 436.156 128.918 413.569 144.253M443.616 141.885C461.237 189.037 461.247 141.561 494.921 144.092M530.069 142.59C492.635 142.764 525.754 153.079 519.876 160.419C508.831 167.863 482.829 171.175 468.519 176M567.777 142.645C548.176 142.644 535.687 158.692 551.095 168.622C563.172 176.406 592.423 158.35 598.782 153.314M598.782 153.314C612.006 142.84 620.551 100.564 615.577 113.834C610.591 127.137 604.922 140.225 598.782 153.314ZM598.782 153.314C586.286 179.948 593.453 164.248 617.545 156.091C635.029 150.172 619.238 171.51 629.98 172.179C645.463 173.144 652.018 163.388 658.901 155.799M660.543 135.24C663.427 135.24 666.987 132.79 669 131.565"
-                  stroke="white"
-                  stroke-width="5"
-                  stroke-linecap="round"
-                  fill="none"/>
-        </svg>
-    </div>
+    <div class="w-full max-w-md space-y-8">
 
-    <!-- Main Content -->
-    <div class="main-content min-h-screen flex items-center justify-center p-4 sm:p-8">
-        <div class="max-w-lg w-full space-y-8">
-
-            <!-- Title -->
-            <h1 class="text-4xl sm:text-5xl font-bold text-center tracking-tight">
-                Liviu's Checkers
+        <!-- Title -->
+        <div class="text-center">
+            <h1 class="text-5xl sm:text-6xl font-extrabold tracking-tight glow-text mb-2">
+                Checkers
             </h1>
+            <p class="text-slate-400 text-sm">by Liviu Orehovschi</p>
+        </div>
 
-            <!-- Board Preview -->
-            <div class="board-preview w-48 h-48 sm:w-56 sm:h-56 mx-auto rounded-lg overflow-hidden shadow-2xl border-4 border-amber-900/80">
-                <script>
-                    for (let row = 0; row < 8; row++) {
-                        for (let col = 0; col < 8; col++) {
-                            const isBlack = (row + col) % 2 === 1;
-                            const bgClass = isBlack ? 'bg-amber-900/90' : 'bg-stone-200';
-                            let piece = '';
-                            if (isBlack) {
-                                if (row < 3) {
-                                    piece = '<div class="preview-piece bg-gradient-to-br from-zinc-600 to-zinc-800 shadow-lg border-2 border-zinc-500"></div>';
-                                } else if (row > 4) {
-                                    piece = '<div class="preview-piece bg-gradient-to-br from-red-500 to-red-700 shadow-lg border-2 border-red-400"></div>';
-                                }
+        <!-- Board Preview -->
+        <div class="board-preview w-44 h-44 sm:w-52 sm:h-52 mx-auto rounded-lg overflow-hidden">
+            <script>
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const isDark = (row + col) % 2 === 1;
+                        const bgClass = isDark ? 'preview-cell-dark' : 'preview-cell-light';
+                        let piece = '';
+                        if (isDark) {
+                            if (row < 3) {
+                                piece = '<div class="preview-piece" style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); box-shadow: 0 0 0 2px #d4a574, 0 2px 4px rgba(0,0,0,0.4);"></div>';
+                            } else if (row > 4) {
+                                piece = '<div class="preview-piece" style="background: linear-gradient(145deg, #dc2626, #991b1b); box-shadow: 0 0 0 2px #d4a574, 0 2px 4px rgba(0,0,0,0.4);"></div>';
                             }
-                            document.write('<div class="preview-cell ' + bgClass + '">' + piece + '</div>');
                         }
+                        document.write('<div class="preview-cell ' + bgClass + '">' + piece + '</div>');
                     }
-                </script>
-            </div>
+                }
+            </script>
+        </div>
 
-            <!-- Game Mode Buttons -->
-            <div class="space-y-3">
-                <button onclick="startGame('ai')"
-                        class="w-full py-4 px-6 bg-red-600 hover:bg-red-500 text-white font-semibold text-lg rounded-xl transition-colors">
-                    Play vs Computer
-                </button>
-                <button onclick="startGame('human')"
-                        class="w-full py-4 px-6 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-lg rounded-xl border border-zinc-700 transition-colors">
-                    Play vs Human
-                </button>
-            </div>
-
-            <!-- About Section (Accordion) -->
-            <div class="bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                <button onclick="toggleAbout()" class="w-full p-4 flex items-center justify-between text-left">
-                    <span class="text-zinc-300 font-medium">About this project</span>
-                    <svg id="accordion-icon" class="accordion-icon w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        <!-- Game Mode Buttons -->
+        <div class="space-y-3">
+            <button onclick="startGame('ai')"
+                    class="btn btn-primary w-full py-4 px-6 text-white font-semibold text-lg rounded-xl">
+                <span class="flex items-center justify-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
-                </button>
-                <div id="about-content" class="accordion-content">
-                    <div class="px-4 pb-4 space-y-3 text-sm text-zinc-400 leading-relaxed">
-                        <p>
-                            Many online checkers games miss a core rule: <span class="text-zinc-200">mandatory captures</span>. If you can capture, you must. This implementation gets that right, along with proper king promotion and multi-jump sequences.
-                        </p>
-                        <p>
-                            Built for the <span class="text-zinc-200">Problem Solving with AI</span> class at <span class="text-zinc-200">Minerva University</span>. The AI uses the minimax algorithm with alpha-beta pruning.
-                        </p>
-                        <p>
-                            Supports both <span class="text-zinc-200">Player vs AI</span> and <span class="text-zinc-200">Player vs Player</span> modes. Works on desktop and mobile.
-                        </p>
+                    Play vs Computer
+                </span>
+            </button>
+            <button onclick="startGame('human')"
+                    class="btn w-full py-4 px-6 text-white font-semibold text-lg rounded-xl">
+                <span class="flex items-center justify-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Play vs Human
+                </span>
+            </button>
+        </div>
 
-                        <div class="pt-3 border-t border-zinc-700/50">
-                            <p class="text-zinc-300 font-medium mb-2">Created by Liviu Orehovschi</p>
-                            <div class="flex flex-wrap gap-4">
-                                <a href="https://orehovschi.com" target="_blank" class="text-red-400 hover:text-red-300 transition-colors">orehovschi.com</a>
-                                <a href="https://linkedin.com/in/liviuorehovschi" target="_blank" class="text-red-400 hover:text-red-300 transition-colors">LinkedIn</a>
-                                <a href="https://github.com/liviuorehovschi" target="_blank" class="text-red-400 hover:text-red-300 transition-colors">GitHub</a>
-                            </div>
+        <!-- About Section -->
+        <div class="glass-panel rounded-2xl overflow-hidden">
+            <button onclick="toggleAbout()" class="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+                <span class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="font-medium text-slate-200">About this project</span>
+                </span>
+                <svg id="about-toggle-icon" class="about-toggle-icon w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div id="about-content" class="about-section">
+                <div class="px-4 pb-5 space-y-4 text-sm text-slate-400 leading-relaxed">
+
+                    <!-- Why I built this -->
+                    <div class="space-y-2">
+                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            Why build another checkers game?
+                        </h4>
+                        <p>
+                            Many online checkers implementations overlook a fundamental rule: <span class="text-slate-200">mandatory captures</span>. If you can capture, you must. I wanted to build a version that gets the rules right, including proper queen promotion and multi-jump sequences.
+                        </p>
+                    </div>
+
+                    <!-- Technical details -->
+                    <div class="space-y-2">
+                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            How it works
+                        </h4>
+                        <p>
+                            The board and checkers pieces are rendered entirely with CSS (gradients, shadows, and transforms). The computer opponent uses the <span class="text-slate-200">minimax algorithm</span> with <span class="text-slate-200">alpha-beta pruning</span> at depth 3, evaluating positions based on piece count and queen status.
+                        </p>
+                    </div>
+
+                    <!-- Course project -->
+                    <div class="space-y-2">
+                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                            Course project
+                        </h4>
+                        <p>
+                            Built as part of the <span class="text-slate-200">Problem Solving with AI</span> course at <span class="text-slate-200">Minerva University</span>.
+                        </p>
+                    </div>
+
+                    <!-- Tech stack -->
+                    <div class="space-y-2">
+                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            Tech stack
+                        </h4>
+                        <p>
+                            Python (Flask) backend, vanilla JavaScript frontend, Tailwind CSS for styling. Deployed on <span class="text-slate-200">Vercel</span>.
+                        </p>
+                    </div>
+
+                    <!-- Social links -->
+                    <div class="pt-4 border-t border-white/10 space-y-3">
+                        <p class="text-slate-300 font-medium">Created by Liviu Orehovschi</p>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="https://orehovschi.com" target="_blank" rel="noopener noreferrer" class="social-btn">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                </svg>
+                                Website
+                            </a>
+                            <a href="https://github.com/liviuorehovschi" target="_blank" rel="noopener noreferrer" class="social-btn">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                                GitHub
+                            </a>
+                            <a href="https://linkedin.com/in/liviuorehovschi" target="_blank" rel="noopener noreferrer" class="social-btn">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                </svg>
+                                LinkedIn
+                            </a>
+                            <a href="mailto:liviu@orehovschi.com" class="social-btn">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                Email
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -173,16 +267,13 @@
         </div>
     </div>
 
-    <!-- Watermark -->
-    <div class="watermark">
+    <!-- Watermark (clickable) -->
+    <a href="https://orehovschi.com" target="_blank" rel="noopener noreferrer" class="watermark">
         <svg viewBox="200 80 520 120" xmlns="http://www.w3.org/2000/svg" fill="none">
             <path d="M220.228 124.394C216.295 136.784 197.467 151.923 213.286 164.067C233.494 179.581 311.081 114.354 287.264 97.9612C267.04 84.0407 230.956 101.639 227.963 116.478M275.112 144.263C303.698 122.796 289.382 147.552 285.867 155.813C283.982 160.244 311.078 154.469 314.689 153.41M314.689 153.41C359.924 140.146 311.373 127.238 314.689 153.41ZM314.689 153.41C316.788 169.975 356.198 147.569 361.872 143.865M361.872 143.865C379.996 132.033 396.654 110.1 396.142 93.0151C395.587 74.4442 371.8 126.504 361.872 143.865ZM361.872 143.865C358.713 149.388 356.853 155.059 354.151 160.646C353.56 161.868 357.043 156.178 366.562 150.218C393.466 133.372 380.946 180.567 408.42 157.542M408.42 157.542C422.113 146.068 406.519 142.186 408.42 157.542ZM408.42 157.542C409.261 164.335 419.291 164.376 427.904 164.518C446.758 164.829 436.156 128.918 413.569 144.253M443.616 141.885C461.237 189.037 461.247 141.561 494.921 144.092M530.069 142.59C492.635 142.764 525.754 153.079 519.876 160.419C508.831 167.863 482.829 171.175 468.519 176M567.777 142.645C548.176 142.644 535.687 158.692 551.095 168.622C563.172 176.406 592.423 158.35 598.782 153.314M598.782 153.314C612.006 142.84 620.551 100.564 615.577 113.834C610.591 127.137 604.922 140.225 598.782 153.314ZM598.782 153.314C586.286 179.948 593.453 164.248 617.545 156.091C635.029 150.172 619.238 171.51 629.98 172.179C645.463 173.144 652.018 163.388 658.901 155.799M660.543 135.24C663.427 135.24 666.987 132.79 669 131.565"
-                  stroke="white"
-                  stroke-width="5"
-                  stroke-linecap="round"
-                  fill="none"/>
+                  stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
         </svg>
-    </div>
+    </a>
 
     <script>
         function startGame(mode) {
@@ -204,15 +295,10 @@
 
         function toggleAbout() {
             const content = document.getElementById('about-content');
-            const icon = document.getElementById('accordion-icon');
+            const icon = document.getElementById('about-toggle-icon');
             content.classList.toggle('open');
             icon.classList.toggle('open');
         }
-
-        // Remove boot screen after animation
-        setTimeout(() => {
-            document.getElementById('boot-screen').style.display = 'none';
-        }, 4000);
     </script>
 </body>
 </html>
