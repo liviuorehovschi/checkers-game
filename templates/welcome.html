@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Liviu's Checkers</title>
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,20 +96,57 @@
         .about-toggle-icon.open {
             transform: rotate(180deg);
         }
+        .about-panel {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+        .about-panel .about-toggle-btn {
+            padding: 1rem 1.25rem;
+            border-radius: 1rem 1rem 0 0;
+        }
+        .about-content-inner {
+            padding: 0 1.25rem 1.25rem;
+            letter-spacing: 0.01em;
+        }
+        .about-block {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .about-block:last-of-type {
+            border-bottom: none;
+        }
+        .about-block h4 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+        }
+        .about-block p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: rgba(148, 163, 184, 0.95);
+        }
+        .about-social-divider {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
         .social-btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
             font-weight: 500;
             transition: all 0.2s ease;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .social-btn:hover {
             background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.12);
             transform: translateY(-1px);
         }
         .glow-text {
@@ -120,6 +157,13 @@
 <body class="text-white flex items-center justify-center p-4 min-h-screen">
 
     <div class="w-full max-w-md space-y-8">
+
+        <!-- Site logo (top-left, links to home) -->
+        <div class="flex justify-start">
+            <a href="/" class="inline-flex items-center" aria-label="Home">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Home" class="h-9 w-auto">
+            </a>
+        </div>
 
         <!-- Title -->
         <div class="text-center">
@@ -173,8 +217,8 @@
         </div>
 
         <!-- About Section -->
-        <div class="glass-panel rounded-2xl overflow-hidden">
-            <button onclick="toggleAbout()" class="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+        <div class="glass-panel about-panel overflow-hidden">
+            <button onclick="toggleAbout()" class="about-toggle-btn w-full flex items-center justify-between text-left hover:bg-white/5 transition-colors">
                 <span class="flex items-center gap-3">
                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -186,11 +230,11 @@
                 </svg>
             </button>
             <div id="about-content" class="about-section">
-                <div class="px-4 pb-5 space-y-4 text-sm text-slate-400 leading-relaxed">
+                <div class="about-content-inner space-y-0">
 
                     <!-- Why I built this -->
-                    <div class="space-y-2">
-                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                    <div class="about-block">
+                        <h4 class="text-slate-200 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             Why build another checkers game?
                         </h4>
@@ -200,8 +244,8 @@
                     </div>
 
                     <!-- Technical details -->
-                    <div class="space-y-2">
-                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                    <div class="about-block">
+                        <h4 class="text-slate-200 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                             How it works
                         </h4>
@@ -211,8 +255,8 @@
                     </div>
 
                     <!-- Course project -->
-                    <div class="space-y-2">
-                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                    <div class="about-block">
+                        <h4 class="text-slate-200 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
                             Course project
                         </h4>
@@ -222,8 +266,8 @@
                     </div>
 
                     <!-- Tech stack -->
-                    <div class="space-y-2">
-                        <h4 class="text-slate-200 font-semibold flex items-center gap-2">
+                    <div class="about-block">
+                        <h4 class="text-slate-200 flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             Tech stack
                         </h4>
@@ -233,7 +277,7 @@
                     </div>
 
                     <!-- Social links -->
-                    <div class="pt-4 border-t border-white/10 space-y-3">
+                    <div class="about-social-divider space-y-3">
                         <p class="text-slate-300 font-medium">Created by Liviu Orehovschi</p>
                         <div class="flex flex-wrap gap-2">
                             <a href="https://orehovschi.com" target="_blank" rel="noopener noreferrer" class="social-btn">
