@@ -203,26 +203,26 @@
 
         .watermark {
             position: fixed;
-            bottom: 12px;
-            right: 12px;
-            opacity: 0.25;
+            bottom: 16px;
+            right: 16px;
+            opacity: 0.3;
             z-index: 50;
             transition: opacity 0.2s ease;
         }
         .watermark:hover {
-            opacity: 0.4;
+            opacity: 0.5;
         }
         .watermark svg {
-            width: 70px;
+            width: 100px;
             height: auto;
         }
         @media (max-width: 480px) {
             .watermark {
-                bottom: 8px;
-                right: 8px;
+                bottom: 12px;
+                right: 12px;
             }
             .watermark svg {
-                width: 50px;
+                width: 80px;
             }
         }
 
@@ -263,14 +263,31 @@
             gap: 8px;
             transition: opacity 0.15s ease;
             cursor: pointer;
+            padding: 8px 12px;
+            margin: -8px -12px;
+            border-radius: 8px;
         }
         .logo-link:hover {
             opacity: 0.7;
+        }
+        .logo-link:active {
+            opacity: 0.5;
         }
         .logo-title {
             font-family: 'Space Grotesk', system-ui, sans-serif;
             color: #fafafa;
             letter-spacing: -0.02em;
+        }
+        @media (max-width: 640px) {
+            .logo-link {
+                gap: 10px;
+                padding: 10px 14px;
+                margin: -10px -14px;
+            }
+            .logo-link img {
+                height: 32px !important;
+                width: auto !important;
+            }
         }
     </style>
 </head>
@@ -286,7 +303,7 @@
             <div class="flex flex-col sm:flex-row items-center gap-4 w-full justify-between">
                 <div onclick="confirmGoHome()" class="logo-link" role="button" tabindex="0" aria-label="Go Home">
                     <img src="{{ url_for('static', filename='logo.png') }}" alt="Home" class="h-7 w-auto">
-                    <span class="logo-title font-semibold text-base hidden sm:block">Checkers</span>
+                    <span class="logo-title font-semibold text-base sm:text-lg">Checkers</span>
                 </div>
                 <div id="turn-indicator" class="turn-badge glass-panel px-5 py-2.5 rounded-xl text-base min-w-[130px] text-center">
                     Red's Turn
@@ -455,6 +472,8 @@
             let draggedPiece = null;
             let dragGhost = null;
             let startCell = null;
+            let isTouchDevice = false;
+            let pendingDropSound = false;
 
             updateSoundToggle();
             document.getElementById('mode-badge').textContent = gameMode === 'ai' ? 'vs Computer' : 'vs Human';
@@ -505,6 +524,11 @@
                     }
                 });
             }
+
+            // Detect touch device
+            document.addEventListener('touchstart', function() {
+                isTouchDevice = true;
+            }, { once: true, passive: true });
 
             // Only unlock on first user interaction
             ['click', 'touchstart'].forEach(e => {
@@ -578,8 +602,11 @@
                     if (selectedPiece) selectedPiece.classList.remove('selected');
                     selectedPiece = target;
                     selectedPiece.classList.add('selected');
-                    playSound('grab');
+                    if (!isTouchDevice) {
+                        playSound('grab');
+                    }
                 } else if (selectedPiece && target.classList.contains('cell')) {
+                    pendingDropSound = true;
                     makeMove(selectedPiece.parentElement, target);
                     selectedPiece.classList.remove('selected');
                     selectedPiece = null;
@@ -597,11 +624,17 @@
                 if (target) target = target.closest('.piece') || target;
 
                 if (target && target.classList.contains('piece') && canMovePiece(target)) {
-                    if (e.touches) e.preventDefault();
+                    if (e.touches) {
+                        e.preventDefault();
+                        isTouchDevice = true;
+                    }
                     draggedPiece = target;
                     startCell = target.parentElement;
                     draggedPiece.classList.add('dragging');
-                    playSound('grab');
+                    pendingDropSound = true;
+                    if (!isTouchDevice) {
+                        playSound('grab');
+                    }
 
                     dragGhost = document.createElement('div');
                     dragGhost.className = 'drag-ghost ' + getPieceType(draggedPiece);
@@ -648,11 +681,14 @@
                     draggedPiece.classList.remove('dragging');
                     startCell.innerHTML = '';
                     targetCell.innerHTML = createPieceHTML(pieceType, wasQueen);
-                    playSound('drop');
+                    pendingDropSound = true;
                     makeMove(startCell, targetCell, true);
                 } else {
                     draggedPiece.classList.remove('dragging');
-                    playSound('drop'); // Play drop sound even when returning to original position
+                    if (pendingDropSound) {
+                        playSound('drop');
+                        pendingDropSound = false;
+                    }
                 }
 
                 if (dragGhost) { dragGhost.remove(); dragGhost = null; }
@@ -691,9 +727,11 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.valid) {
-                        playSound('drop');
+                        if (pendingDropSound) {
+                            playSound('drop');
+                            pendingDropSound = false;
+                        }
                         if (data.cpu_moves && data.cpu_moves.length > 0) {
-                            updateBoard(data.board, data.cpu_moves);
                             animateCpuMoves(data.cpu_moves, data.board, () => {
                                 currentPlayer = data.current_player;
                                 updateTurnIndicator();
@@ -707,6 +745,7 @@
                         }
                     } else {
                         updateBoard(data.board);
+                        pendingDropSound = false;
                         if (data.mandatory_capture) {
                             playSound('warning');
                             showToast('Capture is mandatory!');
@@ -715,20 +754,11 @@
                 });
             }
 
-            function updateBoard(newBoard, skipPositions = []) {
+            function updateBoard(newBoard) {
                 let cells = document.querySelectorAll('.cell');
-                let skipSet = new Set();
-                skipPositions.forEach(m => {
-                    skipSet.add(`${m.start[0]},${m.start[1]}`);
-                    skipSet.add(`${m.end[0]},${m.end[1]}`);
-                    if (Math.abs(m.start[0] - m.end[0]) === 2) {
-                        skipSet.add(`${(m.start[0] + m.end[0]) / 2},${(m.start[1] + m.end[1]) / 2}`);
-                    }
-                });
                 cells.forEach((cell, idx) => {
                     let row = Math.floor(idx / 8);
                     let col = idx % 8;
-                    if (skipSet.has(`${row},${col}`)) return;
                     let type = newBoard[row][col];
                     cell.innerHTML = type === ' ' ? '' : createPieceHTML(type, type.includes('Q'));
                 });
@@ -737,52 +767,86 @@
             function animateCpuMoves(moves, finalBoard, callback) {
                 if (moves.length === 0) { callback(); return; }
                 isAnimating = true;
-                let idx = 0;
 
-                function next() {
-                    if (idx >= moves.length) {
-                        isAnimating = false;
+                const MOVE_DURATION = 300;
+                const CAPTURE_DELAY = 180;
+                const PAUSE_BETWEEN = 150;
+                const INITIAL_DELAY = 200;
+
+                let currentMoveIndex = 0;
+
+                function animateNextMove() {
+                    if (currentMoveIndex >= moves.length) {
                         updateBoard(finalBoard);
+                        isAnimating = false;
                         callback();
                         return;
                     }
 
-                    let m = moves[idx];
-                    let from = document.querySelector(`.cell[data-x="${m.start[0]}"][data-y="${m.start[1]}"]`);
-                    let to = document.querySelector(`.cell[data-x="${m.end[0]}"][data-y="${m.end[1]}"]`);
-                    let piece = from ? from.querySelector('.piece') : null;
+                    const move = moves[currentMoveIndex];
+                    const fromCell = document.querySelector(`.cell[data-x="${move.start[0]}"][data-y="${move.start[1]}"]`);
+                    const toCell = document.querySelector(`.cell[data-x="${move.end[0]}"][data-y="${move.end[1]}"]`);
+                    const piece = fromCell ? fromCell.querySelector('.piece') : null;
 
-                    if (!piece) { idx++; next(); return; }
+                    if (!piece) {
+                        currentMoveIndex++;
+                        animateNextMove();
+                        return;
+                    }
 
-                    let fromRect = from.getBoundingClientRect();
-                    let toRect = to.getBoundingClientRect();
-                    let dx = toRect.left - fromRect.left;
-                    let dy = toRect.top - fromRect.top;
+                    const pieceType = getPieceType(piece);
+                    const isQueen = pieceType.includes('Q');
+                    const isCapture = Math.abs(move.start[0] - move.end[0]) === 2;
+
+                    const fromRect = fromCell.getBoundingClientRect();
+                    const toRect = toCell.getBoundingClientRect();
+                    const deltaX = toRect.left - fromRect.left;
+                    const deltaY = toRect.top - fromRect.top;
 
                     piece.classList.add('animating');
-                    piece.style.transform = `translate(${dx}px, ${dy}px)`;
+                    piece.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
 
-                    const isCapture = Math.abs(m.start[0] - m.end[0]) === 2;
                     if (isCapture) {
-                        let midRow = (m.start[0] + m.end[0]) / 2;
-                        let midCol = (m.start[1] + m.end[1]) / 2;
-                        let capturedCell = document.querySelector(`.cell[data-x="${midRow}"][data-y="${midCol}"]`);
-                        setTimeout(() => { if (capturedCell) capturedCell.innerHTML = ''; }, 210);
+                        const midRow = (move.start[0] + move.end[0]) / 2;
+                        const midCol = (move.start[1] + move.end[1]) / 2;
+                        const capturedCell = document.querySelector(`.cell[data-x="${midRow}"][data-y="${midCol}"]`);
+
+                        setTimeout(() => {
+                            if (capturedCell) {
+                                const capturedPiece = capturedCell.querySelector('.piece');
+                                if (capturedPiece) {
+                                    capturedPiece.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+                                    capturedPiece.style.opacity = '0';
+                                    capturedPiece.style.transform = 'scale(0.5)';
+                                    setTimeout(() => {
+                                        capturedCell.innerHTML = '';
+                                    }, 150);
+                                }
+                            }
+                        }, CAPTURE_DELAY);
                     }
 
                     setTimeout(() => {
                         piece.classList.remove('animating');
                         piece.style.transform = '';
-                        from.innerHTML = '';
-                        let finalType = finalBoard[m.end[0]][m.end[1]];
-                        to.innerHTML = createPieceHTML(finalType, finalType.includes('Q'));
+
+                        fromCell.innerHTML = '';
+
+                        let newType = pieceType;
+                        if (!isQueen && pieceType === 'B' && move.end[0] === 7) {
+                            newType = 'BQ';
+                        }
+                        toCell.innerHTML = createPieceHTML(newType, newType.includes('Q'));
+
                         playSound('drop');
-                        idx++;
-                        setTimeout(next, 120);
-                    }, 350);
+
+                        currentMoveIndex++;
+
+                        setTimeout(animateNextMove, PAUSE_BETWEEN);
+                    }, MOVE_DURATION);
                 }
 
-                setTimeout(next, 250);
+                setTimeout(animateNextMove, INITIAL_DELAY);
             }
 
             function updateTurnIndicator() {
