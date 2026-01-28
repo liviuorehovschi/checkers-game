@@ -9,309 +9,429 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        'body': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'surface': {
+                            '50': '#18181b',
+                            '100': '#141416',
+                            '200': '#0f0f11',
+                            '300': '#0a0a0c',
+                        },
+                        'accent': {
+                            '400': '#f97316',
+                            '500': '#ea580c',
+                            '600': '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * { font-family: 'Inter', system-ui, sans-serif; }
+        * {
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #0c0c0c 100%);
+            background: #08080a;
             min-height: 100vh;
+            overflow-x: hidden;
         }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .board-preview {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 0;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-        }
-        .preview-cell {
-            aspect-ratio: 1;
-        }
-        .preview-cell-light { background: #f5f0e6; }
-        .preview-cell-dark { background: #8b4513; }
-        .preview-piece {
-            width: 70%;
-            height: 70%;
+
+        /* Ambient gradient orbs */
+        .gradient-orb {
+            position: fixed;
             border-radius: 50%;
-            margin: 15%;
+            filter: blur(100px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
         }
-        .btn {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            transition: all 0.2s ease;
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+            top: -200px;
+            right: -150px;
         }
-        .btn:hover {
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
-            border-color: rgba(255, 255, 255, 0.2);
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.1) 0%, transparent 70%);
+            bottom: -150px;
+            left: -150px;
+        }
+
+        /* Noise texture overlay */
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Glass cards */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Modern buttons */
+        .btn-play {
+            position: relative;
+            background: linear-gradient(135deg, #18181b 0%, #0f0f11 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-play::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-play:hover {
+            border-color: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
         }
-        .btn:active {
+
+        .btn-play:hover::before {
+            opacity: 1;
+        }
+
+        .btn-play:active {
             transform: translateY(0);
         }
+
         .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.5);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(249, 115, 22, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-            box-shadow: 0 15px 50px -10px rgba(59, 130, 246, 0.6);
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 15px 50px -10px rgba(249, 115, 22, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
+
+        /* Hero section */
+        .hero-title {
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        /* Board preview mini */
+        .mini-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                        0 0 0 1px rgba(139, 69, 19, 0.3);
+        }
+
+        .mini-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mini-cell-light { background: #e8e0d5; }
+        .mini-cell-dark { background: #8b5a2b; }
+
+        .mini-piece {
+            width: 65%;
+            height: 65%;
+            border-radius: 50%;
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4);
+        }
+
+        .mini-piece-red {
+            background: linear-gradient(145deg, #dc2626, #991b1b);
+        }
+
+        .mini-piece-black {
+            background: linear-gradient(145deg, #27272a, #18181b);
+        }
+
+        /* About cards */
+        .about-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .about-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .about-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        /* Social links */
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Footer watermark */
         .watermark {
             position: fixed;
             bottom: 16px;
             right: 16px;
-            opacity: 0.35;
+            opacity: 0.25;
             z-index: 50;
             transition: opacity 0.2s ease;
         }
+
         .watermark:hover {
-            opacity: 0.6;
+            opacity: 0.5;
         }
+
         .watermark svg {
-            width: 90px;
+            width: 80px;
             height: auto;
         }
-        @media (max-width: 480px) {
-            .watermark svg { width: 60px; }
-            .watermark { bottom: 8px; right: 8px; }
+
+        @media (max-width: 640px) {
+            .watermark { display: none; }
+            .orb-1, .orb-2 { opacity: 0.25; }
         }
-        .about-section {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-            opacity: 0;
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
         }
-        .about-section.open {
-            max-height: 800px;
-            opacity: 1;
+
+        .float-animation {
+            animation: float 4s ease-in-out infinite;
         }
-        .about-toggle-icon {
-            transition: transform 0.3s ease;
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(249, 115, 22, 0.4); }
         }
-        .about-toggle-icon.open {
-            transform: rotate(180deg);
-        }
-        .about-panel {
-            border-radius: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-        }
-        .about-panel .about-toggle-btn {
-            padding: 1rem 1.25rem;
-            border-radius: 1rem 1rem 0 0;
-        }
-        .about-content-inner {
-            padding: 0 1.25rem 1.25rem;
-            letter-spacing: 0.01em;
-        }
-        .about-block {
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .about-block:last-of-type {
-            border-bottom: none;
-        }
-        .about-block h4 {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            margin-bottom: 0.5rem;
-        }
-        .about-block p {
-            font-size: 0.875rem;
-            line-height: 1.6;
-            color: rgba(148, 163, 184, 0.95);
-        }
-        .about-social-divider {
-            margin-top: 1.25rem;
-            padding-top: 1.25rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .social-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0.5rem 1rem;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .social-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
-        }
-        .glow-text {
-            text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+
+        .pulse-glow {
+            animation: pulse-glow 3s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="text-white flex items-center justify-center p-4 min-h-screen">
+<body class="text-white">
+    <!-- Background effects -->
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="noise-overlay"></div>
 
-    <div class="w-full max-w-md space-y-8">
+    <div class="content-wrapper min-h-screen flex flex-col items-center justify-center px-4 py-8">
+        <div class="w-full max-w-lg space-y-10">
 
-        <!-- Site logo (top-left, links to home) -->
-        <div class="flex justify-start">
-            <a href="/" class="inline-flex items-center" aria-label="Home">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="Home" class="h-9 w-auto">
-            </a>
-        </div>
+            <!-- Hero Section: Logo + Title -->
+            <div class="text-center space-y-6">
+                <div class="flex items-center justify-center gap-4">
+                    <img src="{{ url_for('static', filename='logo.png') }}"
+                         alt="Checkers Logo"
+                         class="w-14 h-14 sm:w-16 sm:h-16 float-animation">
+                    <div class="text-left">
+                        <h1 class="hero-title text-4xl sm:text-5xl font-bold">Checkers</h1>
+                        <p class="text-zinc-500 text-sm font-medium tracking-wide">by Liviu Orehovschi</p>
+                    </div>
+                </div>
 
-        <!-- Title -->
-        <div class="text-center">
-            <h1 class="text-5xl sm:text-6xl font-extrabold tracking-tight glow-text mb-2">
-                Checkers
-            </h1>
-            <p class="text-slate-400 text-sm">by Liviu Orehovschi</p>
-        </div>
-
-        <!-- Board Preview -->
-        <div class="board-preview w-44 h-44 sm:w-52 sm:h-52 mx-auto rounded-lg overflow-hidden">
-            <script>
-                for (let row = 0; row < 8; row++) {
-                    for (let col = 0; col < 8; col++) {
-                        const isDark = (row + col) % 2 === 1;
-                        const bgClass = isDark ? 'preview-cell-dark' : 'preview-cell-light';
-                        let piece = '';
-                        if (isDark) {
-                            if (row < 3) {
-                                piece = '<div class="preview-piece" style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); box-shadow: 0 0 0 2px #d4a574, 0 2px 4px rgba(0,0,0,0.4);"></div>';
-                            } else if (row > 4) {
-                                piece = '<div class="preview-piece" style="background: linear-gradient(145deg, #dc2626, #991b1b); box-shadow: 0 0 0 2px #d4a574, 0 2px 4px rgba(0,0,0,0.4);"></div>';
+                <!-- Mini Board Preview -->
+                <div class="flex justify-center">
+                    <div class="mini-board w-32 h-32 sm:w-40 sm:h-40">
+                        <script>
+                            const boardState = [
+                                [0,1,0,1,0,1,0,1],
+                                [1,0,1,0,1,0,1,0],
+                                [0,1,0,1,0,1,0,1],
+                                [0,0,0,0,0,0,0,0],
+                                [0,0,0,0,0,0,0,0],
+                                [2,0,2,0,2,0,2,0],
+                                [0,2,0,2,0,2,0,2],
+                                [2,0,2,0,2,0,2,0]
+                            ];
+                            for (let r = 0; r < 8; r++) {
+                                for (let c = 0; c < 8; c++) {
+                                    const isDark = (r + c) % 2 === 1;
+                                    const cellClass = isDark ? 'mini-cell-dark' : 'mini-cell-light';
+                                    let piece = '';
+                                    if (isDark && boardState[r][c] === 1) {
+                                        piece = '<div class="mini-piece mini-piece-black"></div>';
+                                    } else if (isDark && boardState[r][c] === 2) {
+                                        piece = '<div class="mini-piece mini-piece-red"></div>';
+                                    }
+                                    document.write('<div class="mini-cell ' + cellClass + '">' + piece + '</div>');
+                                }
                             }
-                        }
-                        document.write('<div class="preview-cell ' + bgClass + '">' + piece + '</div>');
-                    }
-                }
-            </script>
-        </div>
-
-        <!-- Game Mode Buttons -->
-        <div class="space-y-3">
-            <button onclick="startGame('ai')"
-                    class="btn btn-primary w-full py-4 px-6 text-white font-semibold text-lg rounded-xl">
-                <span class="flex items-center justify-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                    </svg>
-                    Play vs Computer
-                </span>
-            </button>
-            <button onclick="startGame('human')"
-                    class="btn w-full py-4 px-6 text-white font-semibold text-lg rounded-xl">
-                <span class="flex items-center justify-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    Play vs Human
-                </span>
-            </button>
-        </div>
-
-        <!-- About Section -->
-        <div class="glass-panel about-panel overflow-hidden">
-            <button onclick="toggleAbout()" class="about-toggle-btn w-full flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-                <span class="flex items-center gap-3">
-                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="font-medium text-slate-200">About this project</span>
-                </span>
-                <svg id="about-toggle-icon" class="about-toggle-icon w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </button>
-            <div id="about-content" class="about-section">
-                <div class="about-content-inner space-y-0">
-
-                    <!-- Why I built this -->
-                    <div class="about-block">
-                        <h4 class="text-slate-200 flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            Why build another checkers game?
-                        </h4>
-                        <p>
-                            Many online checkers implementations overlook a fundamental rule: <span class="text-slate-200">mandatory captures</span>. If you can capture, you must. I wanted to build a version that gets the rules right, including proper queen promotion and multi-jump sequences.
-                        </p>
-                    </div>
-
-                    <!-- Technical details -->
-                    <div class="about-block">
-                        <h4 class="text-slate-200 flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                            How it works
-                        </h4>
-                        <p>
-                            The board and checkers pieces are rendered entirely with CSS (gradients, shadows, and transforms). The computer opponent uses the <span class="text-slate-200">minimax algorithm</span> with <span class="text-slate-200">alpha-beta pruning</span> at depth 3, evaluating positions based on piece count and queen status.
-                        </p>
-                    </div>
-
-                    <!-- Course project -->
-                    <div class="about-block">
-                        <h4 class="text-slate-200 flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                            Course project
-                        </h4>
-                        <p>
-                            Built as part of the <span class="text-slate-200">Problem Solving with AI</span> course at <span class="text-slate-200">Minerva University</span>.
-                        </p>
-                    </div>
-
-                    <!-- Tech stack -->
-                    <div class="about-block">
-                        <h4 class="text-slate-200 flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                            Tech stack
-                        </h4>
-                        <p>
-                            Python (Flask) backend, vanilla JavaScript frontend, Tailwind CSS for styling. Deployed on <span class="text-slate-200">Vercel</span>.
-                        </p>
-                    </div>
-
-                    <!-- Social links -->
-                    <div class="about-social-divider space-y-3">
-                        <p class="text-slate-300 font-medium">Created by Liviu Orehovschi</p>
-                        <div class="flex flex-wrap gap-2">
-                            <a href="https://orehovschi.com" target="_blank" rel="noopener noreferrer" class="social-btn">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
-                                </svg>
-                                Website
-                            </a>
-                            <a href="https://github.com/liviuorehovschi" target="_blank" rel="noopener noreferrer" class="social-btn">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                                </svg>
-                                GitHub
-                            </a>
-                            <a href="https://linkedin.com/in/liviuorehovschi" target="_blank" rel="noopener noreferrer" class="social-btn">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                                </svg>
-                                LinkedIn
-                            </a>
-                            <a href="mailto:liviu@orehovschi.com" class="social-btn">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                </svg>
-                                Email
-                            </a>
-                        </div>
+                        </script>
                     </div>
                 </div>
             </div>
+
+            <!-- Play Buttons -->
+            <div class="space-y-3">
+                <button onclick="startGame('ai')"
+                        class="btn-play btn-primary w-full py-4 px-6 text-white font-semibold text-lg rounded-2xl pulse-glow">
+                    <span class="relative z-10 flex items-center justify-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        Play vs Computer
+                    </span>
+                </button>
+
+                <button onclick="startGame('human')"
+                        class="btn-play w-full py-4 px-6 text-white font-semibold text-lg rounded-2xl">
+                    <span class="relative z-10 flex items-center justify-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Play vs Human
+                    </span>
+                </button>
+            </div>
+
+            <!-- About Section - Modern Cards -->
+            <div class="space-y-4">
+                <h2 class="text-zinc-400 text-xs font-semibold tracking-widest uppercase text-center">About this project</h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Why Card -->
+                    <div class="about-card">
+                        <div class="about-icon bg-orange-500/10">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-white font-semibold text-sm mb-1">Why another checkers?</h3>
+                        <p class="text-zinc-500 text-xs leading-relaxed">Most online versions ignore mandatory captures. This one gets the rules right.</p>
+                    </div>
+
+                    <!-- Tech Card -->
+                    <div class="about-card">
+                        <div class="about-icon bg-emerald-500/10">
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-white font-semibold text-sm mb-1">How it works</h3>
+                        <p class="text-zinc-500 text-xs leading-relaxed">Minimax algorithm with alpha-beta pruning. Pure CSS board rendering.</p>
+                    </div>
+
+                    <!-- Course Card -->
+                    <div class="about-card">
+                        <div class="about-icon bg-violet-500/10">
+                            <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-white font-semibold text-sm mb-1">Course project</h3>
+                        <p class="text-zinc-500 text-xs leading-relaxed">Built for Problem Solving with AI at Minerva University.</p>
+                    </div>
+
+                    <!-- Stack Card -->
+                    <div class="about-card">
+                        <div class="about-icon bg-sky-500/10">
+                            <svg class="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-white font-semibold text-sm mb-1">Tech stack</h3>
+                        <p class="text-zinc-500 text-xs leading-relaxed">Python Flask, vanilla JS, Tailwind CSS. Deployed on Vercel.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Creator Info + Social Links -->
+            <div class="flex flex-col items-center gap-4 pt-2">
+                <p class="text-zinc-500 text-sm">Created by <span class="text-zinc-300 font-medium">Liviu Orehovschi</span></p>
+                <div class="flex items-center gap-2">
+                    <a href="https://orehovschi.com" target="_blank" rel="noopener noreferrer" class="social-link" title="Website">
+                        <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                        </svg>
+                    </a>
+                    <a href="https://github.com/liviuorehovschi" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub">
+                        <svg class="w-4 h-4 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://linkedin.com/in/liviuorehovschi" target="_blank" rel="noopener noreferrer" class="social-link" title="LinkedIn">
+                        <svg class="w-4 h-4 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                    </a>
+                    <a href="mailto:liviu@orehovschi.com" class="social-link" title="Email">
+                        <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- Watermark (clickable) -->
+    <!-- Watermark -->
     <a href="https://orehovschi.com" target="_blank" rel="noopener noreferrer" class="watermark">
         <svg viewBox="200 80 520 120" xmlns="http://www.w3.org/2000/svg" fill="none">
             <path d="M220.228 124.394C216.295 136.784 197.467 151.923 213.286 164.067C233.494 179.581 311.081 114.354 287.264 97.9612C267.04 84.0407 230.956 101.639 227.963 116.478M275.112 144.263C303.698 122.796 289.382 147.552 285.867 155.813C283.982 160.244 311.078 154.469 314.689 153.41M314.689 153.41C359.924 140.146 311.373 127.238 314.689 153.41ZM314.689 153.41C316.788 169.975 356.198 147.569 361.872 143.865M361.872 143.865C379.996 132.033 396.654 110.1 396.142 93.0151C395.587 74.4442 371.8 126.504 361.872 143.865ZM361.872 143.865C358.713 149.388 356.853 155.059 354.151 160.646C353.56 161.868 357.043 156.178 366.562 150.218C393.466 133.372 380.946 180.567 408.42 157.542M408.42 157.542C422.113 146.068 406.519 142.186 408.42 157.542ZM408.42 157.542C409.261 164.335 419.291 164.376 427.904 164.518C446.758 164.829 436.156 128.918 413.569 144.253M443.616 141.885C461.237 189.037 461.247 141.561 494.921 144.092M530.069 142.59C492.635 142.764 525.754 153.079 519.876 160.419C508.831 167.863 482.829 171.175 468.519 176M567.777 142.645C548.176 142.644 535.687 158.692 551.095 168.622C563.172 176.406 592.423 158.35 598.782 153.314M598.782 153.314C612.006 142.84 620.551 100.564 615.577 113.834C610.591 127.137 604.922 140.225 598.782 153.314ZM598.782 153.314C586.286 179.948 593.453 164.248 617.545 156.091C635.029 150.172 619.238 171.51 629.98 172.179C645.463 173.144 652.018 163.388 658.901 155.799M660.543 135.24C663.427 135.24 666.987 132.79 669 131.565"
@@ -335,13 +455,6 @@
                 localStorage.setItem('gameMode', mode);
                 window.location.href = '/game';
             });
-        }
-
-        function toggleAbout() {
-            const content = document.getElementById('about-content');
-            const icon = document.getElementById('about-toggle-icon');
-            content.classList.toggle('open');
-            icon.classList.toggle('open');
         }
     </script>
 </body>

@@ -28,11 +28,11 @@ class CPUPlayer:
                 if cell == self.color:
                     score += 100  # Assign 100 points for each piece of CPU's color
                 elif cell == f"{self.color}Q":
-                    score += 175  # Assign 175 points for each king of CPU's color
+                    score += 175  # Assign 175 points for each queen of CPU's color
                 elif cell in ['R', 'B'] and cell != self.color:
                     score -= 100  # Subtract points for opponent's pieces
                 elif cell in ['RQ', 'BQ'] and cell[0] != self.color:
-                    score -= 175  # Subtract more points for opponent's kings
+                    score -= 175  # Subtract more points for opponent's queens
         return score
 
     def get_possible_moves(self):

@@ -9,9 +9,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        'body': ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * { font-family: 'Inter', system-ui, sans-serif; }
+        * {
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
         :root {
             --cell-size: 60px;
         }
@@ -21,20 +36,51 @@
             }
         }
         body {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #0c0c0c 100%);
+            background: #08080a;
             min-height: 100vh;
+            overflow-x: hidden;
         }
+
+        /* Ambient gradient orbs */
+        .gradient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, transparent 70%);
+            top: -150px;
+            right: -100px;
+        }
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.08) 0%, transparent 70%);
+            bottom: -100px;
+            left: -100px;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+        }
+
         .glass-panel {
-            background: rgba(255, 255, 255, 0.03);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
         .board {
             display: grid;
             grid-template-columns: repeat(8, var(--cell-size));
             grid-template-rows: repeat(8, var(--cell-size));
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 0 0 4px rgba(139, 69, 19, 0.6);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(139, 69, 19, 0.4);
         }
         .cell {
             width: var(--cell-size);
@@ -44,8 +90,8 @@
             justify-content: center;
             position: relative;
         }
-        .cell-light { background: #f5f0e6; }
-        .cell-dark { background: #8b4513; }
+        .cell-light { background: #e8e0d5; }
+        .cell-dark { background: #8b5a2b; }
         .piece {
             width: calc(var(--cell-size) - 12px);
             height: calc(var(--cell-size) - 12px);
@@ -69,7 +115,7 @@
             box-shadow: 0 0 0 3px #d4a574, 0 0 0 5px #5c3317, 0 6px 12px rgba(0,0,0,0.5);
         }
         .piece.selected {
-            box-shadow: 0 0 0 3px #fbbf24, 0 0 0 6px rgba(251, 191, 36, 0.4), 0 0 25px 10px rgba(251, 191, 36, 0.3);
+            box-shadow: 0 0 0 3px #f97316, 0 0 0 6px rgba(249, 115, 22, 0.4), 0 0 25px 10px rgba(249, 115, 22, 0.3);
             transform: scale(1.1);
         }
         .piece.dragging {
@@ -106,7 +152,7 @@
             position: absolute;
             inset: 4px;
             border-radius: 50%;
-            background: rgba(251, 191, 36, 0.4);
+            background: rgba(249, 115, 22, 0.4);
             animation: pulse 0.8s ease-in-out infinite;
         }
         @keyframes pulse {
@@ -117,67 +163,84 @@
             transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 100;
         }
+
+        /* Modern buttons */
         .btn {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            position: relative;
+            background: linear-gradient(135deg, #18181b 0%, #0f0f11 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
             transition: all 0.2s ease;
         }
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
         .btn:hover {
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.15);
             transform: translateY(-1px);
+        }
+        .btn:hover::before {
+            opacity: 1;
         }
         .btn:active {
             transform: translateY(0);
         }
         .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            border: 1px solid rgba(249, 115, 22, 0.3);
         }
         .btn-primary:hover {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
         }
+
         .sound-btn {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
         .sound-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
         }
         .modal-backdrop {
-            backdrop-filter: blur(8px);
-            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(0, 0, 0, 0.8);
         }
         .modal-panel {
-            background: linear-gradient(135deg, #1e1e2e 0%, #151521 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, #18181b 0%, #0f0f11 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
         }
         .watermark {
             position: fixed;
             bottom: 16px;
             right: 16px;
-            opacity: 0.35;
+            opacity: 0.25;
             z-index: 50;
             transition: opacity 0.2s ease;
         }
         .watermark:hover {
-            opacity: 0.6;
+            opacity: 0.5;
         }
         .watermark svg {
-            width: 90px;
+            width: 80px;
             height: auto;
         }
         @media (max-width: 480px) {
-            .watermark svg { width: 60px; }
-            .watermark { bottom: 8px; right: 8px; }
+            .watermark { display: none; }
         }
         .toast {
             position: fixed;
@@ -206,7 +269,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.08), transparent);
             transform: rotate(45deg);
             animation: shimmer 3s ease-in-out infinite;
         }
@@ -214,88 +277,120 @@
             0%, 100% { transform: translateX(-100%) rotate(45deg); }
             50% { transform: translateX(100%) rotate(45deg); }
         }
+
+        /* Mode badge */
+        .mode-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Logo link */
+        .logo-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s ease;
+        }
+        .logo-link:hover {
+            opacity: 0.8;
+        }
+        .logo-title {
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
     </style>
 </head>
-<body class="text-white flex items-center justify-center p-4 min-h-screen">
+<body class="text-white">
+    <!-- Background effects -->
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
 
     <!-- Toast notification for mandatory captures -->
     <div id="toast" class="toast">Capture is mandatory!</div>
 
-    <div class="flex flex-col items-center gap-6 w-full max-w-[540px]">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row items-center gap-4 w-full justify-between">
-            <a href="/" class="flex-shrink-0" aria-label="Home">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="Home" class="h-9 w-auto">
-            </a>
-            <div id="turn-indicator" class="turn-badge glass-panel px-6 py-3 rounded-xl font-semibold text-lg min-w-[150px] text-center">
-                <span class="relative z-10">Red's Turn</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <div id="mode-badge" class="glass-panel px-4 py-2 rounded-full text-sm text-slate-300">
-                    vs Computer
+    <div class="content-wrapper flex items-center justify-center p-4 min-h-screen">
+        <div class="flex flex-col items-center gap-5 w-full max-w-[540px]">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 w-full justify-between">
+                <a href="/" class="logo-link" aria-label="Home">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Home" class="h-8 w-auto">
+                    <span class="logo-title font-semibold text-lg hidden sm:block">Checkers</span>
+                </a>
+                <div id="turn-indicator" class="turn-badge glass-panel px-5 py-2.5 rounded-xl font-semibold text-base min-w-[140px] text-center">
+                    <span class="relative z-10">Red's Turn</span>
                 </div>
-                <!-- Sound Toggle Button -->
-                <button id="sound-btn" class="sound-btn glass-panel" onclick="toggleSound()" title="Toggle Sound">
-                    <svg id="sound-icon" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
-                    </svg>
+                <div class="flex items-center gap-2">
+                    <div id="mode-badge" class="mode-badge px-3 py-1.5 rounded-full text-xs text-zinc-400 font-medium">
+                        vs Computer
+                    </div>
+                    <!-- Sound Toggle Button -->
+                    <button id="sound-btn" class="sound-btn" onclick="toggleSound()" title="Toggle Sound">
+                        <svg id="sound-icon" class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Board Container -->
+            <div class="glass-panel p-3 rounded-2xl">
+                <div id="board" class="board rounded-lg overflow-hidden">
+                    {% for row in range(8) %}
+                        {% for col in range(8) %}
+                            <div class="cell {{ 'cell-dark' if (row + col) % 2 else 'cell-light' }}" data-x="{{ row }}" data-y="{{ col }}">
+                                {% if board[row][col] != ' ' %}
+                                    <div class="piece {{ board[row][col] }}" data-type="{{ board[row][col] }}">
+                                        {% if 'Q' in board[row][col] %}
+                                        <svg class="crown-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2 17L4.5 7L8.5 11L12 4L15.5 11L19.5 7L22 17H2Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/>
+                                            <circle cx="4.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                                            <circle cx="12" cy="4" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                                            <circle cx="19.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
+                                            <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
+                                        </svg>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center gap-2">
+                <button onclick="confirmGoHome()" class="btn px-5 py-2.5 rounded-xl font-medium text-white text-sm">
+                    <span class="relative z-10">Home</span>
+                </button>
+                <button onclick="confirmNewGame()" class="btn px-5 py-2.5 rounded-xl font-medium text-white text-sm">
+                    <span class="relative z-10">New Game</span>
+                </button>
+                <button onclick="showHelp()" class="btn w-10 h-10 rounded-xl font-bold text-base text-white flex items-center justify-center">
+                    <span class="relative z-10">?</span>
                 </button>
             </div>
-        </div>
-
-        <!-- Board Container -->
-        <div class="glass-panel p-3 rounded-2xl">
-            <div id="board" class="board rounded-lg overflow-hidden">
-                {% for row in range(8) %}
-                    {% for col in range(8) %}
-                        <div class="cell {{ 'cell-dark' if (row + col) % 2 else 'cell-light' }}" data-x="{{ row }}" data-y="{{ col }}">
-                            {% if board[row][col] != ' ' %}
-                                <div class="piece {{ board[row][col] }}" data-type="{{ board[row][col] }}">
-                                    {% if 'Q' in board[row][col] %}
-                                    <svg class="crown-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M2 17L4.5 7L8.5 11L12 4L15.5 11L19.5 7L22 17H2Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.5" stroke-linejoin="round"/>
-                                        <circle cx="4.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
-                                        <circle cx="12" cy="4" r="1.5" fill="#fbbf24" stroke="#b45309"/>
-                                        <circle cx="19.5" cy="7" r="1.5" fill="#fbbf24" stroke="#b45309"/>
-                                        <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
-                                    </svg>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="flex items-center gap-3">
-            <button onclick="confirmGoHome()" class="btn px-6 py-3 rounded-xl font-medium text-white">
-                Home
-            </button>
-            <button onclick="confirmNewGame()" class="btn px-6 py-3 rounded-xl font-medium text-white">
-                New Game
-            </button>
-            <button onclick="showHelp()" class="btn w-12 h-12 rounded-xl font-bold text-xl text-white flex items-center justify-center">
-                ?
-            </button>
         </div>
     </div>
 
     <!-- Confirmation Modal (shared for Home and New Game) -->
     <div id="confirm-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
         <div class="modal-panel p-6 rounded-2xl max-w-sm mx-4 text-center">
-            <svg class="w-12 h-12 mx-auto mb-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            <h3 class="text-xl font-semibold mb-2">Are you sure?</h3>
-            <p class="text-slate-400 text-sm mb-6">Current session will be lost.</p>
-            <div class="flex gap-3 justify-center">
-                <button onclick="hideConfirmModal()" class="btn px-5 py-2.5 rounded-xl font-medium">
-                    Cancel
+            <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Are you sure?</h3>
+            <p class="text-zinc-500 text-sm mb-5">Current session will be lost.</p>
+            <div class="flex gap-2 justify-center">
+                <button onclick="hideConfirmModal()" class="btn px-5 py-2.5 rounded-xl font-medium text-sm">
+                    <span class="relative z-10">Cancel</span>
                 </button>
-                <button id="confirm-action-btn" class="btn-primary px-5 py-2.5 rounded-xl font-medium">
-                    Yes
+                <button id="confirm-action-btn" class="btn-primary btn px-5 py-2.5 rounded-xl font-medium text-sm">
+                    <span class="relative z-10">Yes</span>
                 </button>
             </div>
         </div>
@@ -304,16 +399,20 @@
     <!-- Game Over Overlay -->
     <div id="game-over-overlay" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
         <div class="modal-panel p-8 rounded-2xl text-center max-w-sm mx-4">
-            <div id="winner-icon" class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div id="winner-icon" class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                 </svg>
             </div>
-            <h2 id="winner-text" class="text-3xl font-bold mb-2">Game Over!</h2>
-            <p id="winner-subtitle" class="text-slate-400 mb-6">Well played!</p>
-            <div class="flex gap-3 justify-center">
-                <button onclick="goHomeDirectly()" class="btn px-5 py-3 rounded-xl font-medium">Home</button>
-                <button onclick="playAgain()" class="btn-primary px-5 py-3 rounded-xl font-medium">Play Again</button>
+            <h2 id="winner-text" class="text-2xl font-bold mb-2">Game Over!</h2>
+            <p id="winner-subtitle" class="text-zinc-500 text-sm mb-6">Well played!</p>
+            <div class="flex gap-2 justify-center">
+                <button onclick="goHomeDirectly()" class="btn px-5 py-2.5 rounded-xl font-medium text-sm">
+                    <span class="relative z-10">Home</span>
+                </button>
+                <button onclick="playAgain()" class="btn-primary btn px-5 py-2.5 rounded-xl font-medium text-sm">
+                    <span class="relative z-10">Play Again</span>
+                </button>
             </div>
         </div>
     </div>
@@ -322,25 +421,25 @@
     <div id="help-overlay" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
         <div class="modal-panel p-6 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold">How to Play</h2>
+                <h2 class="text-lg font-bold">How to Play</h2>
                 <button onclick="hideHelp()" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
-            <div class="space-y-4 text-slate-300 text-sm leading-relaxed">
+            <div class="space-y-4 text-zinc-400 text-sm leading-relaxed">
                 <p><strong class="text-white">Objective:</strong> Capture all opponent pieces or block them from moving.</p>
                 <div class="space-y-3">
                     <div class="flex gap-3">
-                        <div class="w-6 h-6 rounded bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span class="text-amber-500 text-xs font-bold">1</span>
+                        <div class="w-6 h-6 rounded bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-orange-500 text-xs font-bold">1</span>
                         </div>
                         <p><strong class="text-white">Movement:</strong> Pieces move diagonally forward one square at a time.</p>
                     </div>
                     <div class="flex gap-3">
-                        <div class="w-6 h-6 rounded bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span class="text-amber-500 text-xs font-bold">2</span>
+                        <div class="w-6 h-6 rounded bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-orange-500 text-xs font-bold">2</span>
                         </div>
                         <p><strong class="text-white">Capturing:</strong> Jump over an opponent's piece diagonally to capture it. Captures can be made forward and backward.</p>
                     </div>
@@ -351,14 +450,14 @@
                         <p><strong class="text-white">Mandatory Captures:</strong> If a capture is available, you must take it.</p>
                     </div>
                     <div class="flex gap-3">
-                        <div class="w-6 h-6 rounded bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span class="text-amber-500 text-xs font-bold">3</span>
+                        <div class="w-6 h-6 rounded bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-orange-500 text-xs font-bold">3</span>
                         </div>
                         <p><strong class="text-white">Multiple Jumps:</strong> If another capture is available after jumping, you must continue.</p>
                     </div>
                     <div class="flex gap-3">
-                        <div class="w-6 h-6 rounded bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                        <div class="w-6 h-6 rounded bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M2 17L4.5 7L8.5 11L12 4L15.5 11L19.5 7L22 17H2Z"/>
                             </svg>
                         </div>
@@ -366,10 +465,12 @@
                     </div>
                 </div>
                 <div class="pt-3 border-t border-white/10">
-                    <p class="text-slate-400"><strong class="text-slate-300">Controls:</strong> Drag and drop pieces, or click to select then click the destination.</p>
+                    <p class="text-zinc-500"><strong class="text-zinc-400">Controls:</strong> Drag and drop pieces, or click to select then click the destination.</p>
                 </div>
             </div>
-            <button onclick="hideHelp()" class="mt-6 w-full btn-primary py-3 rounded-xl font-medium">Got it</button>
+            <button onclick="hideHelp()" class="mt-6 w-full btn-primary btn py-2.5 rounded-xl font-medium text-sm">
+                <span class="relative z-10">Got it</span>
+            </button>
         </div>
     </div>
 
@@ -396,7 +497,7 @@
             let isAnimating = false;
             let gameOver = false;
             let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
-            let userHasInteracted = false;
+            let audioUnlocked = false;
             let pendingConfirmAction = null;
 
             let draggedPiece = null;
@@ -419,13 +520,52 @@
                 <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
             </svg>`;
 
-            // Mark user interaction on first click/touch
-            document.addEventListener('click', () => { userHasInteracted = true; }, { once: true });
-            document.addEventListener('touchstart', () => { userHasInteracted = true; }, { once: true });
+            // MOBILE SOUND FIX: Unlock all audio elements on first user interaction
+            // This is required because mobile browsers require user interaction to play audio
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                audioUnlocked = true;
+
+                const audioElements = [
+                    document.getElementById('sound-grab'),
+                    document.getElementById('sound-drop'),
+                    document.getElementById('sound-won'),
+                    document.getElementById('sound-lost'),
+                    document.getElementById('sound-warning')
+                ];
+
+                audioElements.forEach(audio => {
+                    if (audio) {
+                        // Play and immediately pause to unlock
+                        const originalVolume = audio.volume;
+                        audio.volume = 0;
+                        const playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                audio.pause();
+                                audio.currentTime = 0;
+                                audio.volume = originalVolume;
+                            }).catch(() => {
+                                audio.volume = originalVolume;
+                            });
+                        } else {
+                            audio.pause();
+                            audio.currentTime = 0;
+                            audio.volume = originalVolume;
+                        }
+                    }
+                });
+            }
+
+            // Add unlock listeners to multiple event types
+            ['click', 'touchstart', 'touchend', 'mousedown'].forEach(eventType => {
+                document.addEventListener(eventType, unlockAudio, { once: false, passive: true });
+            });
 
             // Sound functions using WAV files
             function playSound(type) {
-                if (!soundEnabled || !userHasInteracted) return;
+                if (!soundEnabled) return;
+
                 try {
                     let audio;
                     switch(type) {
@@ -437,17 +577,29 @@
                         default: return;
                     }
                     if (audio) {
+                        // Clone and play for overlapping sounds support
                         audio.currentTime = 0;
-                        audio.play().catch(() => {});
+                        audio.volume = 1;
+                        const playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(() => {
+                                // Silently ignore errors
+                            });
+                        }
                     }
-                } catch (e) {}
+                } catch (e) {
+                    // Silently ignore errors
+                }
             }
 
             window.toggleSound = function() {
-                userHasInteracted = true;
+                unlockAudio();
                 soundEnabled = !soundEnabled;
                 localStorage.setItem('soundEnabled', soundEnabled);
                 updateSoundToggle();
+                if (soundEnabled) {
+                    playSound('grab'); // Play a sound to confirm
+                }
             };
 
             function updateSoundToggle() {
@@ -479,7 +631,7 @@
             board.addEventListener("click", handleClick);
 
             function handleClick(e) {
-                userHasInteracted = true;
+                unlockAudio();
                 if (isAnimating || gameOver || draggedPiece) return;
                 if (gameMode === 'ai' && currentPlayer !== 'R') return;
 
@@ -498,7 +650,7 @@
             }
 
             function handleDragStart(e) {
-                userHasInteracted = true;
+                unlockAudio();
                 if (isAnimating || gameOver) return;
                 if (gameMode === 'ai' && currentPlayer !== 'R') return;
 
@@ -732,11 +884,11 @@
                 if (currentPlayer === 'R') {
                     el.innerHTML = '<span class="relative z-10">Red\'s Turn</span>';
                     el.style.borderColor = '#dc2626';
-                    el.style.boxShadow = '0 0 20px rgba(220, 38, 38, 0.3)';
+                    el.style.boxShadow = '0 0 20px rgba(220, 38, 38, 0.2)';
                 } else {
                     el.innerHTML = '<span class="relative z-10">Black\'s Turn</span>';
-                    el.style.borderColor = '#64748b';
-                    el.style.boxShadow = '0 0 20px rgba(100, 116, 139, 0.3)';
+                    el.style.borderColor = '#52525b';
+                    el.style.boxShadow = '0 0 20px rgba(82, 82, 91, 0.2)';
                 }
             }
 
@@ -763,7 +915,7 @@
 
                 txt.textContent = winner === 'R' ? 'Red Wins!' : 'Black Wins!';
                 txt.style.color = winner === 'R' ? '#dc2626' : '#a1a1aa';
-                icon.style.background = winner === 'R' ? 'rgba(220, 38, 38, 0.2)' : 'rgba(100, 116, 139, 0.2)';
+                icon.style.background = winner === 'R' ? 'rgba(220, 38, 38, 0.15)' : 'rgba(100, 116, 139, 0.15)';
                 icon.querySelector('svg').style.color = winner === 'R' ? '#dc2626' : '#a1a1aa';
                 sub.textContent = gameMode === 'ai' ? (winner === 'R' ? 'You beat the computer!' : 'The computer wins!') : 'Great game!';
                 overlay.classList.remove('hidden');
@@ -772,6 +924,7 @@
 
             // Modal functions
             window.confirmGoHome = function() {
+                unlockAudio();
                 playSound('warning');
                 pendingConfirmAction = 'home';
                 document.getElementById('confirm-modal').classList.remove('hidden');
@@ -783,6 +936,7 @@
             };
 
             window.confirmNewGame = function() {
+                unlockAudio();
                 playSound('warning');
                 pendingConfirmAction = 'newgame';
                 document.getElementById('confirm-modal').classList.remove('hidden');
