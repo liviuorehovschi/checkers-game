@@ -29,12 +29,12 @@
             overflow-x: hidden;
         }
 
-        /* Subtle gradient mesh background */
+        /* Dynamic background */
         .bg-mesh {
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse at 20% 0%, rgba(38, 38, 42, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 0%, rgba(220, 38, 38, 0.08) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 100%, rgba(39, 39, 42, 0.3) 0%, transparent 50%);
             pointer-events: none;
             z-index: 0;
@@ -138,7 +138,7 @@
             z-index: 100;
         }
 
-        /* 2026 Modern Buttons */
+        /* 2026 Modern Buttons - Sleek, Minimal */
         .btn-2026 {
             position: relative;
             display: inline-flex;
@@ -146,21 +146,21 @@
             justify-content: center;
             gap: 8px;
             padding: 12px 20px;
-            border-radius: 10px;
             font-weight: 500;
             font-size: 13px;
-            letter-spacing: -0.01em;
+            letter-spacing: 0.02em;
             transition: all 0.15s ease;
             cursor: pointer;
             color: #a1a1aa;
             background: transparent;
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
         }
 
         .btn-2026:hover {
-            background: rgba(255,255,255,0.04);
+            background: rgba(255,255,255,0.05);
             color: #fafafa;
-            border-color: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.2);
         }
 
         .btn-2026:active {
@@ -168,42 +168,26 @@
         }
 
         .btn-primary-2026 {
-            background: linear-gradient(180deg, #27272a 0%, #18181b 100%);
-            color: #fafafa;
+            background: #dc2626;
+            color: white;
             border: none;
-            box-shadow:
-                0 1px 2px rgba(0,0,0,0.2),
-                0 2px 8px rgba(0,0,0,0.15),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-
-        .btn-primary-2026::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 10px;
-            padding: 1px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
         }
 
         .btn-primary-2026:hover {
-            background: linear-gradient(180deg, #3f3f46 0%, #27272a 100%);
-            box-shadow:
-                0 2px 4px rgba(0,0,0,0.2),
-                0 4px 16px rgba(0,0,0,0.2),
-                inset 0 1px 0 rgba(255,255,255,0.08);
+            background: #ef4444;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px -8px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn-primary-2026:active {
+            transform: translateY(0);
         }
 
         .sound-btn {
             width: 36px;
             height: 36px;
             padding: 0;
-            border-radius: 8px;
+            clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
         }
 
         .modal-backdrop {
@@ -219,9 +203,9 @@
 
         .watermark {
             position: fixed;
-            bottom: 16px;
-            right: 16px;
-            opacity: 0.2;
+            bottom: 12px;
+            right: 12px;
+            opacity: 0.25;
             z-index: 50;
             transition: opacity 0.2s ease;
         }
@@ -233,7 +217,13 @@
             height: auto;
         }
         @media (max-width: 480px) {
-            .watermark { display: none; }
+            .watermark {
+                bottom: 8px;
+                right: 8px;
+            }
+            .watermark svg {
+                width: 50px;
+            }
         }
 
         .toast {
@@ -479,10 +469,29 @@
                 <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
             </svg>`;
 
-            // Mobile audio unlock
+            // Mobile audio unlock - only create AudioContext, don't play sounds
             function unlockAudio() {
                 if (audioUnlocked) return;
                 audioUnlocked = true;
+
+                // Create and resume AudioContext to unlock audio on iOS/mobile
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        const ctx = new AudioContext();
+                        if (ctx.state === 'suspended') {
+                            ctx.resume();
+                        }
+                        // Create a silent buffer and play it
+                        const buffer = ctx.createBuffer(1, 1, 22050);
+                        const source = ctx.createBufferSource();
+                        source.buffer = buffer;
+                        source.connect(ctx.destination);
+                        source.start(0);
+                    }
+                } catch (e) {}
+
+                // Load all audio elements
                 const audioElements = [
                     document.getElementById('sound-grab'),
                     document.getElementById('sound-drop'),
@@ -492,21 +501,18 @@
                 ];
                 audioElements.forEach(audio => {
                     if (audio) {
-                        const vol = audio.volume;
-                        audio.volume = 0;
-                        const p = audio.play();
-                        if (p) p.then(() => { audio.pause(); audio.currentTime = 0; audio.volume = vol; }).catch(() => { audio.volume = vol; });
-                        else { audio.pause(); audio.currentTime = 0; audio.volume = vol; }
+                        audio.load();
                     }
                 });
             }
 
-            ['click', 'touchstart', 'touchend', 'mousedown'].forEach(e => {
-                document.addEventListener(e, unlockAudio, { once: false, passive: true });
+            // Only unlock on first user interaction
+            ['click', 'touchstart'].forEach(e => {
+                document.addEventListener(e, unlockAudio, { once: true, passive: true });
             });
 
             function playSound(type) {
-                if (!soundEnabled) return;
+                if (!soundEnabled || !audioUnlocked) return;
                 try {
                     let audio;
                     switch(type) {
@@ -517,7 +523,12 @@
                         case 'warning': audio = document.getElementById('sound-warning'); break;
                         default: return;
                     }
-                    if (audio) { audio.currentTime = 0; audio.volume = 1; audio.play().catch(() => {}); }
+                    if (audio) {
+                        // Clone the audio for mobile to allow overlapping sounds
+                        const clone = audio.cloneNode();
+                        clone.volume = 1;
+                        clone.play().catch(() => {});
+                    }
                 } catch (e) {}
             }
 
@@ -637,9 +648,11 @@
                     draggedPiece.classList.remove('dragging');
                     startCell.innerHTML = '';
                     targetCell.innerHTML = createPieceHTML(pieceType, wasQueen);
+                    playSound('drop');
                     makeMove(startCell, targetCell, true);
                 } else {
                     draggedPiece.classList.remove('dragging');
+                    playSound('drop'); // Play drop sound even when returning to original position
                 }
 
                 if (dragGhost) { dragGhost.remove(); dragGhost = null; }
