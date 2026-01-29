@@ -71,9 +71,9 @@ class CPUPlayer:
             max_eval = float('-inf')
             best_move = None
             for move in self.get_possible_moves():
-                captured_piece_pos = self.board.apply_move(move)
+                captured_piece_pos, captured_piece_type = self.board.apply_move(move)
                 eval_score, _ = self.minimax(depth - 1, alpha, beta, not self.board.multi_capture_in_progress)
-                self.board.undo_move(move, captured_piece_pos)
+                self.board.undo_move(move, captured_piece_pos, captured_piece_type)
 
                 if eval_score > max_eval:
                     max_eval = eval_score
@@ -88,9 +88,9 @@ class CPUPlayer:
             min_eval = float('inf')
             best_move = None
             for move in self.get_possible_moves():
-                captured_piece_pos = self.board.apply_move(move)
+                captured_piece_pos, captured_piece_type = self.board.apply_move(move)
                 eval_score, _ = self.minimax(depth - 1, alpha, beta, self.board.multi_capture_in_progress)
-                self.board.undo_move(move, captured_piece_pos)
+                self.board.undo_move(move, captured_piece_pos, captured_piece_type)
 
                 if eval_score < min_eval:
                     min_eval = eval_score

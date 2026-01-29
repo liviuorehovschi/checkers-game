@@ -352,35 +352,42 @@ class CheckersBoard:
         This method moves a piece from the start position to the end position.
         It handles capture moves by removing the captured piece and checks for 
         further possible captures, enabling multi-capture sequences.
+        Promotes to queen when a piece reaches the opposite end (queen never reverts).
 
         Args:
             move (tuple): A tuple containing start and end positions of the move.
 
         Returns:
-            tuple: The position of the captured piece, if any; otherwise None.
+            tuple: (captured_piece_pos, captured_piece_type) if capture; (None, None) otherwise.
         """
         start_pos, end_pos = move
         moving_piece = self.board[start_pos[0]][start_pos[1]]
         self.board[start_pos[0]][start_pos[1]] = ' '
         self.board[end_pos[0]][end_pos[1]] = moving_piece
-        
+
+        captured_piece_type = None
         captured_piece_pos = None
         if abs(start_pos[0] - end_pos[0]) == 2:
-            # Handle capture move
             mid_row = (start_pos[0] + end_pos[0]) // 2
             mid_col = (start_pos[1] + end_pos[1]) // 2
             captured_piece_pos = (mid_row, mid_col)
+            captured_piece_type = self.board[mid_row][mid_col]  # read before clearing
             self.board[mid_row][mid_col] = ' '
 
-            # Check for further captures
             further_captures = self.check_captures_from_position(end_pos[0], end_pos[1])
             self.multi_capture_in_progress = bool(further_captures)
         else:
             self.multi_capture_in_progress = False
 
-        return captured_piece_pos
+        # Promote to queen at opposite end; queen never reverts
+        if end_pos[0] == 0 and moving_piece == 'R':
+            self.board[end_pos[0]][end_pos[1]] = 'RQ'
+        elif end_pos[0] == 7 and moving_piece == 'B':
+            self.board[end_pos[0]][end_pos[1]] = 'BQ'
 
-    def undo_move(self, move, captured_piece_pos=None):
+        return (captured_piece_pos, captured_piece_type)
+
+    def undo_move(self, move, captured_piece_pos=None, captured_piece_type=None):
         """
         Reverts a move on the board.
 
@@ -390,6 +397,7 @@ class CheckersBoard:
         Args:
             move (tuple): A tuple containing start and end positions of the move.
             captured_piece_pos (tuple, optional): Position of the piece captured in the move, if any.
+            captured_piece_type (str, optional): Type of captured piece ('R', 'RQ', 'B', 'BQ') for correct restore.
         """
         start_pos, end_pos = move
         moving_piece = self.board[end_pos[0]][end_pos[1]]
@@ -397,9 +405,8 @@ class CheckersBoard:
         self.board[start_pos[0]][start_pos[1]] = moving_piece
 
         if captured_piece_pos:
-            # Restore the captured piece
-            captured_piece_color = 'R' if self.current_player == 'B' else 'B'
-            self.board[captured_piece_pos[0]][captured_piece_pos[1]] = captured_piece_color
+            restore = captured_piece_type if captured_piece_type else ('R' if self.current_player == 'B' else 'B')
+            self.board[captured_piece_pos[0]][captured_piece_pos[1]] = restore
 
         self.multi_capture_in_progress = False
 

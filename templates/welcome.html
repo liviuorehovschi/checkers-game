@@ -163,39 +163,37 @@
             border-color: rgba(255,255,255,0.2);
         }
 
-        /* Feature accordion */
-        .features-container {
-            display: flex;
-            flex-direction: column;
+        /* Feature cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 1px;
             background: rgba(255,255,255,0.03);
             border-radius: 2px;
             overflow: hidden;
         }
 
-        .feature-accordion {
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-card {
             background: #050506;
-            transition: background 0.2s ease;
-        }
-
-        .feature-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 24px;
+            padding: 24px;
             cursor: pointer;
-            user-select: none;
             transition: background 0.2s ease;
         }
 
-        .feature-header:hover {
+        .feature-card:hover {
             background: rgba(255,255,255,0.02);
-        }
-
-        .feature-header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
         }
 
         .feature-icon {
@@ -204,116 +202,153 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 16px;
             color: #dc2626;
-            flex-shrink: 0;
         }
 
-        .feature-title-group {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .feature-accordion h3 {
+        .feature-card h3 {
             font-family: 'Space Grotesk', system-ui, sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #fafafa;
+            margin-bottom: 8px;
             letter-spacing: -0.01em;
-            margin: 0;
         }
 
-        .feature-summary {
+        .feature-card p {
             font-size: 12px;
+            line-height: 1.6;
             color: #52525b;
-            margin: 0;
+            margin-bottom: 12px;
         }
 
-        .feature-chevron {
-            width: 20px;
-            height: 20px;
-            color: #52525b;
-            transition: transform 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .feature-accordion.open .feature-chevron {
-            transform: rotate(180deg);
-        }
-
-        .feature-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .feature-accordion.open .feature-content {
-            max-height: 600px;
-        }
-
-        .feature-content-inner {
-            padding: 0 24px 24px 76px;
-        }
-
-        .feature-content p {
-            font-size: 13px;
-            line-height: 1.7;
+        .feature-card .learn-more {
+            font-size: 11px;
             color: #71717a;
-            margin: 0 0 12px 0;
-        }
-
-        .feature-content p:last-child {
-            margin-bottom: 0;
-        }
-
-        .feature-content a {
-            color: #a1a1aa;
-            text-decoration: underline;
-            text-underline-offset: 2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             transition: color 0.15s ease;
         }
 
-        .feature-content a:hover {
+        .feature-card:hover .learn-more {
+            color: #a1a1aa;
+        }
+
+        /* Feature Modal */
+        .feature-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .feature-modal.open {
+            display: flex;
+        }
+
+        body.feature-modal-open {
+            overflow: hidden;
+        }
+
+        .feature-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .feature-modal-content {
+            position: relative;
+            background: linear-gradient(180deg, #18181b 0%, #09090b 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+        }
+
+        .feature-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #52525b;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .feature-modal-close:hover {
+            background: rgba(255,255,255,0.05);
+            color: #a1a1aa;
+        }
+
+        .feature-modal-title {
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            font-size: 18px;
+            font-weight: 600;
             color: #fafafa;
+            margin-bottom: 16px;
+            padding-right: 32px;
         }
 
-        .feature-links {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255,255,255,0.05);
+        .feature-modal-body p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #a1a1aa;
+            margin-bottom: 12px;
         }
 
-        .feature-links-title {
+        .feature-modal-body a {
+            color: #dc2626;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .feature-modal-links {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .feature-modal-links-title {
             font-size: 11px;
             color: #52525b;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .feature-links ul {
+        .feature-modal-links ul {
             list-style: none;
             padding: 0;
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
         }
 
-        .feature-links li {
-            font-size: 12px;
+        .feature-modal-links li {
+            font-size: 13px;
+            margin-bottom: 8px;
         }
 
-        @media (max-width: 640px) {
-            .feature-header {
-                padding: 16px 20px;
-            }
-            .feature-content-inner {
-                padding: 0 20px 20px 20px;
-            }
-            .feature-summary {
-                display: none;
-            }
+        .feature-modal-links li a {
+            color: #71717a;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .feature-modal-links li a:hover {
+            color: #fafafa;
         }
 
         /* Social icons */
@@ -555,131 +590,73 @@
                 </div>
             </main>
 
-            <!-- Features Section -->
+            <!-- Features Section: horizontal cards, modal for details (no accordion) -->
             <section class="px-6 pb-8">
                 <div class="max-w-6xl mx-auto">
                     <div class="divider mb-8"></div>
-                    <div class="features-container">
+                    <div class="features-grid">
                         <!-- Rule Fidelity -->
-                        <div class="feature-accordion" onclick="toggleAccordion(this)">
-                            <div class="feature-header">
-                                <div class="feature-header-left">
-                                    <div class="feature-icon">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="feature-title-group">
-                                        <h3>Rule Fidelity</h3>
-                                        <p class="feature-summary">Competitive standard enforcement</p>
-                                    </div>
-                                </div>
-                                <svg class="feature-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        <div class="feature-card" role="button" tabindex="0" onclick="openFeatureModal(0)" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openFeatureModal(0); }" aria-label="Rule Fidelity – Learn more">
+                            <div class="feature-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                             </div>
-                            <div class="feature-content">
-                                <div class="feature-content-inner">
-                                    <p>This implementation follows standard English draughts rules used in organized play, where captures are compulsory and capture sequences must be completed once started.</p>
-                                    <p>Many online implementations and student projects relax or omit these constraints entirely, allowing illegal non capture moves or premature turn endings.</p>
-                                    <p>Official rule sets explicitly require forced captures and complete multi jump sequences. This project treats rule enforcement as a correctness problem, not a UX convenience.</p>
-                                    <div class="feature-links">
-                                        <p class="feature-links-title">References</p>
-                                        <ul>
-                                            <li><a href="https://en.wikipedia.org/wiki/Checkers" target="_blank" rel="noopener">Wikipedia: Checkers / Draughts</a></li>
-                                            <li><a href="https://wcdf.net/rules/rules_of_checkers_english.pdf" target="_blank" rel="noopener">WCDF English Draughts Rules (PDF)</a></li>
-                                            <li><a href="https://boardgames.stackexchange.com/questions/2114/must-a-player-take-a-jump-in-checkers" target="_blank" rel="noopener">Rules clarification on compulsory capture</a></li>
-                                            <li><a href="https://www.fmjd.org/" target="_blank" rel="noopener">World Draughts Federation (FMJD)</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
+                            <h3>Rule Fidelity</h3>
+                            <p>Competitive standard enforcement</p>
+                            <span class="learn-more">Learn more</span>
                         </div>
-
                         <!-- From Scratch Game Engine -->
-                        <div class="feature-accordion" onclick="toggleAccordion(this)">
-                            <div class="feature-header">
-                                <div class="feature-header-left">
-                                    <div class="feature-icon">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                                        </svg>
-                                    </div>
-                                    <div class="feature-title-group">
-                                        <h3>From Scratch Game Engine</h3>
-                                        <p class="feature-summary">No external engines or libraries</p>
-                                    </div>
-                                </div>
-                                <svg class="feature-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        <div class="feature-card" role="button" tabindex="0" onclick="openFeatureModal(1)" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openFeatureModal(1); }" aria-label="From Scratch Game Engine – Learn more">
+                            <div class="feature-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
                                 </svg>
                             </div>
-                            <div class="feature-content">
-                                <div class="feature-content-inner">
-                                    <p>The game engine is implemented entirely from scratch. No checkers engines, no chess engines, no move generation libraries, and no rule abstractions.</p>
-                                    <p>Board state representation, legal move generation, forced capture enforcement, capture chaining, king promotion, and terminal state detection are all explicitly coded.</p>
-                                    <p>Most academic implementations rely on prebuilt engines or simplified logic that bypasses rule complexity. This project intentionally does not, in order to expose the full decision surface to the AI.</p>
-                                </div>
-                            </div>
+                            <h3>From Scratch Game Engine</h3>
+                            <p>No external engines or libraries</p>
+                            <span class="learn-more">Learn more</span>
                         </div>
-
                         <!-- Search and AI Design -->
-                        <div class="feature-accordion" onclick="toggleAccordion(this)">
-                            <div class="feature-header">
-                                <div class="feature-header-left">
-                                    <div class="feature-icon">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="feature-title-group">
-                                        <h3>Search and AI Design</h3>
-                                        <p class="feature-summary">Minimax with alpha beta pruning</p>
-                                    </div>
-                                </div>
-                                <svg class="feature-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        <div class="feature-card" role="button" tabindex="0" onclick="openFeatureModal(2)" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openFeatureModal(2); }" aria-label="Search and AI Design – Learn more">
+                            <div class="feature-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                 </svg>
                             </div>
-                            <div class="feature-content">
-                                <div class="feature-content-inner">
-                                    <p>The AI opponent uses a classical minimax search with alpha beta pruning over explicitly generated legal game states.</p>
-                                    <p>Search depth is intentionally capped to balance responsiveness with strategic pressure, emphasizing evaluation quality over brute force.</p>
-                                    <p>The goal is not to create an unbeatable agent, but to model decision making under constrained computation, mirroring real world AI tradeoffs.</p>
-                                </div>
-                            </div>
+                            <h3>Search and AI Design</h3>
+                            <p>Minimax with alpha beta pruning</p>
+                            <span class="learn-more">Learn more</span>
                         </div>
-
                         <!-- Academic Context -->
-                        <div class="feature-accordion" onclick="toggleAccordion(this)">
-                            <div class="feature-header">
-                                <div class="feature-header-left">
-                                    <div class="feature-icon">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="feature-title-group">
-                                        <h3>Academic Context and Intent</h3>
-                                        <p class="feature-summary">Problem Solving with AI at Minerva</p>
-                                    </div>
-                                </div>
-                                <svg class="feature-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        <div class="feature-card" role="button" tabindex="0" onclick="openFeatureModal(3)" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openFeatureModal(3); }" aria-label="Academic Context and Intent – Learn more">
+                            <div class="feature-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
                                 </svg>
                             </div>
-                            <div class="feature-content">
-                                <div class="feature-content-inner">
-                                    <p>Built for Problem Solving with AI at Minerva University.</p>
-                                    <p>The assignment objective was to implement a decision making agent using classical search techniques. This project exceeds the minimum requirements by enforcing full rule correctness and implementing a complete game engine.</p>
-                                    <p>The focus is on modeling state, constraints, and tradeoffs, not just producing a playable result.</p>
-                                </div>
-                            </div>
+                            <h3>Academic Context and Intent</h3>
+                            <p>Problem Solving with AI at Minerva</p>
+                            <span class="learn-more">Learn more</span>
                         </div>
                     </div>
                 </div>
             </section>
+
+            <!-- Feature modal: centered overlay, no scroll on page, close via button / backdrop / ESC -->
+            <div id="feature-modal" class="feature-modal" aria-modal="true" aria-hidden="true" role="dialog">
+                <div class="feature-modal-backdrop" onclick="closeFeatureModal()"></div>
+                <div class="feature-modal-content" onclick="event.stopPropagation()">
+                    <button type="button" class="feature-modal-close" onclick="closeFeatureModal()" aria-label="Close">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    <h3 id="feature-modal-title" class="feature-modal-title"></h3>
+                    <div id="feature-modal-body" class="feature-modal-body"></div>
+                </div>
+            </div>
 
             <!-- Footer -->
             <footer class="px-6 py-6">
@@ -740,14 +717,45 @@
             });
         }
 
-        function toggleAccordion(element) {
-            const wasOpen = element.classList.contains('open');
-            document.querySelectorAll('.feature-accordion.open').forEach(acc => {
-                acc.classList.remove('open');
-            });
-            if (!wasOpen) {
-                element.classList.add('open');
+        var featureContents = [
+            {
+                title: 'Rule Fidelity',
+                body: '<p>This implementation follows standard English draughts rules used in organized play, where captures are compulsory and capture sequences must be completed once started.</p><p>Many online implementations and student projects relax or omit these constraints entirely, allowing illegal non capture moves or premature turn endings.</p><p>Official rule sets explicitly require forced captures and complete multi jump sequences. This project treats rule enforcement as a correctness problem, not a UX convenience.</p><div class="feature-modal-links"><p class="feature-modal-links-title">References</p><ul><li><a href="https://en.wikipedia.org/wiki/Draughts#Rules" target="_blank" rel="noopener">Wikipedia: compulsory capture rule</a></li><li><a href="https://wcdf.net" target="_blank" rel="noopener">World Council for Draughts Federation rules</a></li><!-- TODO: if WCDF adds a dedicated English draughts rules page (non-PDF), use that URL here --><li><a href="https://wcdf.net/rules/rules_of_checkers_english.pdf" target="_blank" rel="noopener">WCDF English Draughts Rules (PDF)</a></li><li><a href="https://boardgames.stackexchange.com/questions/2114/must-a-player-take-a-jump-in-checkers" target="_blank" rel="noopener">Rules clarification on compulsory capture</a></li><li><a href="https://www.fmjd.org/" target="_blank" rel="noopener">World Draughts Federation (FMJD)</a></li></ul></div>'
+            },
+            {
+                title: 'From Scratch Game Engine',
+                body: '<p>The game engine is implemented entirely from scratch. No checkers engines, no chess engines, no move generation libraries, and no rule abstractions.</p><p>Board state representation, legal move generation, forced capture enforcement, capture chaining, king promotion, and terminal state detection are all explicitly coded.</p><p>Most academic implementations rely on prebuilt engines or simplified logic that bypasses rule complexity. This project intentionally does not, in order to expose the full decision surface to the AI.</p>'
+            },
+            {
+                title: 'Search and AI Design',
+                body: '<p>The AI opponent uses a classical minimax search with alpha beta pruning over explicitly generated legal game states.</p><p>Search depth is intentionally capped to balance responsiveness with strategic pressure, emphasizing evaluation quality over brute force.</p><p>The goal is not to create an unbeatable agent, but to model decision making under constrained computation, mirroring real world AI tradeoffs.</p>'
+            },
+            {
+                title: 'Academic Context and Intent',
+                body: '<p>Built for Problem Solving with AI at Minerva University.</p><p>The assignment objective was to implement a decision making agent using classical search techniques. This project exceeds the minimum requirements by enforcing full rule correctness and implementing a complete game engine.</p><p>The focus is on modeling state, constraints, and tradeoffs, not just producing a playable result.</p>'
             }
+        ];
+
+        function openFeatureModal(index) {
+            var modal = document.getElementById('feature-modal');
+            document.getElementById('feature-modal-title').textContent = featureContents[index].title;
+            document.getElementById('feature-modal-body').innerHTML = featureContents[index].body;
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('feature-modal-open');
+            document.addEventListener('keydown', handleFeatureModalEscape);
+        }
+
+        function closeFeatureModal() {
+            var modal = document.getElementById('feature-modal');
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('feature-modal-open');
+            document.removeEventListener('keydown', handleFeatureModalEscape);
+        }
+
+        function handleFeatureModalEscape(e) {
+            if (e.key === 'Escape') closeFeatureModal();
         }
     </script>
 </body>

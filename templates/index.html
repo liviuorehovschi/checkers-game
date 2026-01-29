@@ -488,20 +488,24 @@
                 <rect x="2" y="17" width="20" height="3" rx="1" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
             </svg>`;
 
-            // Mobile audio unlock - only create AudioContext, don't play sounds
+            // Preload/cache: reuse same audio elements; unlock context on first user gesture
+            const audioElements = {
+                grab: document.getElementById('sound-grab'),
+                drop: document.getElementById('sound-drop'),
+                won: document.getElementById('sound-won'),
+                lost: document.getElementById('sound-lost'),
+                warning: document.getElementById('sound-warning')
+            };
+
             function unlockAudio() {
                 if (audioUnlocked) return;
                 audioUnlocked = true;
 
-                // Create and resume AudioContext to unlock audio on iOS/mobile
                 try {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     if (AudioContext) {
                         const ctx = new AudioContext();
-                        if (ctx.state === 'suspended') {
-                            ctx.resume();
-                        }
-                        // Create a silent buffer and play it
+                        if (ctx.state === 'suspended') ctx.resume();
                         const buffer = ctx.createBuffer(1, 1, 22050);
                         const source = ctx.createBufferSource();
                         source.buffer = buffer;
@@ -510,18 +514,9 @@
                     }
                 } catch (e) {}
 
-                // Load all audio elements
-                const audioElements = [
-                    document.getElementById('sound-grab'),
-                    document.getElementById('sound-drop'),
-                    document.getElementById('sound-won'),
-                    document.getElementById('sound-lost'),
-                    document.getElementById('sound-warning')
-                ];
-                audioElements.forEach(audio => {
-                    if (audio) {
-                        audio.load();
-                    }
+                Object.keys(audioElements).forEach(k => {
+                    const a = audioElements[k];
+                    if (a) { a.load(); a.volume = 1; }
                 });
             }
 
@@ -537,22 +532,11 @@
 
             function playSound(type) {
                 if (!soundEnabled || !audioUnlocked) return;
+                const audio = audioElements[type];
+                if (!audio) return;
                 try {
-                    let audio;
-                    switch(type) {
-                        case 'grab': audio = document.getElementById('sound-grab'); break;
-                        case 'drop': audio = document.getElementById('sound-drop'); break;
-                        case 'won': audio = document.getElementById('sound-won'); break;
-                        case 'lost': audio = document.getElementById('sound-lost'); break;
-                        case 'warning': audio = document.getElementById('sound-warning'); break;
-                        default: return;
-                    }
-                    if (audio) {
-                        // Clone the audio for mobile to allow overlapping sounds
-                        const clone = audio.cloneNode();
-                        clone.volume = 1;
-                        clone.play().catch(() => {});
-                    }
+                    audio.currentTime = 0;
+                    audio.play().catch(() => {});
                 } catch (e) {}
             }
 
@@ -735,13 +719,19 @@
                             animateCpuMoves(data.cpu_moves, data.board, () => {
                                 currentPlayer = data.current_player;
                                 updateTurnIndicator();
-                                if (data.game_over) showGameOver(data.winner);
+                                if (data.game_over) {
+                                if (data.draw_by_repetition) showDrawByRepetition();
+                                else showGameOver(data.winner);
+                            }
                             });
                         } else {
                             updateBoard(data.board);
                             currentPlayer = data.current_player;
                             updateTurnIndicator();
-                            if (data.game_over) showGameOver(data.winner);
+                            if (data.game_over) {
+                                if (data.draw_by_repetition) showDrawByRepetition();
+                                else showGameOver(data.winner);
+                            }
                         }
                     } else {
                         updateBoard(data.board);
@@ -833,9 +823,8 @@
                         fromCell.innerHTML = '';
 
                         let newType = pieceType;
-                        if (!isQueen && pieceType === 'B' && move.end[0] === 7) {
-                            newType = 'BQ';
-                        }
+                        if (!isQueen && pieceType === 'B' && move.end[0] === 7) newType = 'BQ';
+                        if (!isQueen && pieceType === 'R' && move.end[0] === 0) newType = 'RQ';
                         toCell.innerHTML = createPieceHTML(newType, newType.includes('Q'));
 
                         playSound('drop');
@@ -874,6 +863,24 @@
                 icon.style.background = winner === 'R' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(161, 161, 170, 0.1)';
                 icon.querySelector('svg').style.color = winner === 'R' ? '#dc2626' : '#a1a1aa';
                 sub.textContent = gameMode === 'ai' ? (winner === 'R' ? 'You beat the computer!' : 'The computer wins!') : 'Great game!';
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+
+            function showDrawByRepetition() {
+                gameOver = true;
+                playSound('lost');
+
+                let overlay = document.getElementById('game-over-overlay');
+                let txt = document.getElementById('winner-text');
+                let sub = document.getElementById('winner-subtitle');
+                let icon = document.getElementById('winner-icon');
+
+                txt.textContent = 'Draw by repetition';
+                txt.style.color = '#a1a1aa';
+                icon.style.background = 'rgba(161, 161, 170, 0.1)';
+                icon.querySelector('svg').style.color = '#a1a1aa';
+                sub.textContent = 'The same position occurred three times.';
                 overlay.classList.remove('hidden');
                 overlay.classList.add('flex');
             }
