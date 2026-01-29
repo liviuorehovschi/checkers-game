@@ -532,6 +532,7 @@
 
             function playSound(type) {
                 if (!soundEnabled || !audioUnlocked) return;
+                if (isTouchDevice && (type === 'grab' || type === 'drop')) return;
                 const audio = audioElements[type];
                 if (!audio) return;
                 try {
